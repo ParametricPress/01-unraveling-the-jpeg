@@ -5,8 +5,6 @@ class Header extends React.PureComponent {
     return (
       <div className={'article-header'} style={{marginTop: 30}}>
         <div className="hed-container">
-
-
         <h1 className={'hed'}>
         {this.props.title} {this.props.title} {this.props.title} <br/>
           Decoding the Jpeg <span className="header-highlight">Decoding</span> the Jpeg Decoding <br />

@@ -1026,13 +1026,13 @@ img {
 }
 
 .parametric-metadata-header {
-  font-size: 28px;
+  font-size: 20px;
   font-family: 'Anderson';
   font-weight: bold;
 }
 .parametric-metadata-role {
   font-family: 'Bluu';
-  font-weight: bold;
+  /* font-weight: bold; */
 }
 
 @media all and (max-width: 1200px) {
