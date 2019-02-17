@@ -5,10 +5,9 @@ class Header extends React.PureComponent {
     return (
       <div className={'article-header'}>
         <h1 className={'hed'}>
-          {this.props.title} {this.props.title} {this.props.title} <br/>
-          Decoding the Jpeg <span className="header-highlight">Decoding</span> the Jpeg Decoding <br />
-          the Jpeg Decoding <span className="header-highlight">the Jpeg</span> Decoding the Jpeg <br />
-          {this.props.title} {this.props.title} {this.props.title}
+        Decoding the Jpeg Decoding the Jpeg the Jpeg Decoding the Jpeg Decoding the Jpeg Decoding the Jpeg Decoding the Jpeg<br/>
+        Decoding the Jpeg Decoding the Jpeg Decoding the Jpeg <span className="header-highlight">Decoding the Jpeg</span> the Jpeg Decoding Decoding the Jpeg Decoding the Jpeg<br />
+        Decoding the Jpeg Decoding the Jpeg Jpeg Decoding the Jpeg Decoding the Jpeg Decoding Decoding the Jpeg Decoding the Jpeg
         </h1>
         {
           this.props.subtitle && (
