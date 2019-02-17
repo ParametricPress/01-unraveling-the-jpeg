@@ -959,22 +959,25 @@ h2.dek {
 
 .article-header {
   text-align: center;
-  background: #2D2D2D;
-  color: white;
+  color: #2D2D2D;
   padding: -0.5em 0 -0.5em 0;
   margin-bottom: 4em;
+}
+
+.article-header .hed-container {
   color: #2D2D2D;
+  background: #2D2D2D;
+  width: 100%;
   text-shadow:
-  -1px -1px 0 #B0B0B0,
-  1px -1px 0 #B0B0B0,
-  -1px 1px 0 #B0B0B0,
-  1px 1px 0 #B0B0B0;
+  -0.5px -0.5px 0 #B0B0B0,
+  0.5px -0.5px 0 #B0B0B0,
+  -0.5px 0.5px 0 #B0B0B0,
+  0.5px 0.5px 0 #B0B0B0;
   white-space: nowrap;
   display: flex;
   justify-content: center;
   overflow: hidden;
 }
-
 .article-header .header-highlight {
   color: #fff;
   text-shadow: none;

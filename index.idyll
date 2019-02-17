@@ -2,6 +2,8 @@
 
 [meta title:"Decoding The Jpeg" description:"Short description of your project" /]
 
+[Nav fullWidth:true /]
+
 [Header
   title:"Decoding The Jpeg"
   fullWidth:true /]

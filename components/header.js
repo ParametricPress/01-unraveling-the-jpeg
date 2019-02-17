@@ -3,12 +3,15 @@ import React from 'react';
 class Header extends React.PureComponent {
   render() {
     return (
-      <div className={'article-header'}>
+      <div className={'article-header'} style={{marginTop: 30}}>
+        <div className="hed-container">
+
+
         <h1 className={'hed'}>
-        Decoding the Jpeg Decoding the Jpeg the Jpeg Decoding the Jpeg Decoding the Jpeg Decoding the Jpeg Decoding the Jpeg<br/>
-        Decoding the Jpeg Decoding the Jpeg Decoding the Jpeg <span className="header-highlight">Decoding the Jpeg</span> the Jpeg Decoding Decoding the Jpeg Decoding the Jpeg<br />
-        Decoding the Jpeg Decoding the Jpeg Jpeg Decoding the Jpeg Decoding the Jpeg Decoding Decoding the Jpeg Decoding the Jpeg
-        </h1>
+        {this.props.title} {this.props.title} {this.props.title} <br/>
+          Decoding the Jpeg <span className="header-highlight">Decoding</span> the Jpeg Decoding <br />
+          the Jpeg Decoding <span className="header-highlight">the Jpeg</span> Decoding the Jpeg <br />
+{this.props.title} {this.props.title} {this.props.title}        </h1>
         {
           this.props.subtitle && (
             <h2 className={'dek'}>
@@ -52,7 +55,7 @@ class Header extends React.PureComponent {
           </div>
           )
         }
-
+      </div>
       </div>
     );
   }
