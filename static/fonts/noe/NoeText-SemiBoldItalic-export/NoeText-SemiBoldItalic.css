@@ -1,0 +1,7 @@
+
+@font-face {
+    font-family:"NoeText-SemiBoldItalic";
+    src:url("NoeText-SemiBoldItalic.woff2") format("woff2"),url("NoeText-SemiBoldItalic.woff") format("woff"),url("NoeText-SemiBoldItalic.otf") format("opentype");
+    font-style:normal;font-weight:400;
+}
+        

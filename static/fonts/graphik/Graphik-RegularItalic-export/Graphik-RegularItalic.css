@@ -1,0 +1,7 @@
+
+@font-face {
+    font-family:"Graphik-RegularItalic";
+    src:url("Graphik-RegularItalic.woff2") format("woff2"),url("Graphik-RegularItalic.woff") format("woff"),url("Graphik-RegularItalic.otf") format("opentype");
+    font-style:normal;font-weight:400;
+}
+        

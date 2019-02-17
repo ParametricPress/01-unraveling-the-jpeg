@@ -1,0 +1,7 @@
+
+@font-face {
+    font-family:"NoeText-Italic";
+    src:url("NoeText-Italic.woff2") format("woff2"),url("NoeText-Italic.woff") format("woff"),url("NoeText-Italic.otf") format("opentype");
+    font-style:normal;font-weight:400;
+}
+        

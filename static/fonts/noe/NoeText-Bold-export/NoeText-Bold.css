@@ -1,0 +1,7 @@
+
+@font-face {
+    font-family:"NoeText-Bold";
+    src:url("NoeText-Bold.woff2") format("woff2"),url("NoeText-Bold.woff") format("woff"),url("NoeText-Bold.otf") format("opentype");
+    font-style:normal;font-weight:400;
+}
+        
