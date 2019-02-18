@@ -4,7 +4,7 @@ JPEG is the most popular image format in history. It is used billions of times p
 
 ## Installing dependencies
 
-1. Install `idyll` globally (only need to do this once)
+1. Install `idyll` globally (only need to do this once): `npm install -g idyll`
 2. Install local dependencies: `npm install`
 
 ## Running local dev server
