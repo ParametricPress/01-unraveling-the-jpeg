@@ -16,6 +16,8 @@ class ImageFetch extends React.Component {
 					// From:
 					// Start is FFDA (255 218)
 					// End is FFD9 (255 217)
+					// If there exists a thumbnail, it will trip this up
+					// Maybe find a way to check for a thumbnail and ignore it?
 					if (i < bytes.length - 1 && bytes[i] == 255 && bytes[i+1] == 218) {
 						start = true;
 					}
