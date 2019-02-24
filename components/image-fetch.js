@@ -5,17 +5,18 @@ class ImageFetch extends React.Component {
   componentDidMount() {
 		fetch(this.props.src)
 			.then((response) => {
-				console.log(response);
 				return response.arrayBuffer();
       })
       .then((buffer) => {
-        console.log('here');
 				let bytes = new Uint8Array(buffer);
 				let start = false;
 				let saveBytes = [];
 				let headerBytes = [];
 				for (let i = 0; i < bytes.length; ++i) {
-					if (i < bytes.length - 1 && bytes[i] == 252 && bytes[i+1] == 255) {
+					// From:
+					// Start is FFDA (255 218)
+					// End is FFD9 (255 217)
+					if (i < bytes.length - 1 && bytes[i] == 255 && bytes[i+1] == 218) {
 						start = true;
 					}
 					if (start) {

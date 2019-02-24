@@ -6,10 +6,11 @@ class Header extends React.PureComponent {
       <div className={'article-header'} style={{marginTop: 30}}>
         <div className="hed-container">
         <h1 className={'hed'}>
-        {this.props.title} {this.props.title} {this.props.title} <br/>
-          Decoding the Jpeg <span className="header-highlight">Decoding</span> the Jpeg Decoding <br />
-          the Jpeg Decoding <span className="header-highlight">the Jpeg</span> Decoding the Jpeg <br />
-{this.props.title} {this.props.title} {this.props.title}        </h1>
+        <br/>
+          <span className="header-highlight">Unraveling</span> <br />
+          <span className="header-highlight">the JPEG</span><br />
+        <br />
+        </h1>
         {
           this.props.subtitle && (
             <h2 className={'dek'}>

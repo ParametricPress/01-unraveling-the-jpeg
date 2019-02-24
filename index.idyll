@@ -1,11 +1,9 @@
-
-
-[meta title:"Decoding The Jpeg" description:"Short description of your project" /]
+[meta title:"Unraveling The JPEG" description:"Short description of your project" /]
 
 [Nav fullWidth:true /]
 
 [Header
-  title:"Decoding The Jpeg"
+  title:"Unraveling The JPEG"
   fullWidth:true /]
 
 [Metadata
@@ -22,22 +20,43 @@
   source:""
 /]
 
+If you've ever used the internet, you've probably seen a JPEG image. JPEG is a standard for image compression that's brought us a world where colorful, high quality images are easily shared. From web pages, to email, to social media and smartphones, it's used billions of times per day across all of our devices every time we view images online. Without JPEG, the web would be a little less colorful, a lot slower, and possibly host a lot less cat pictures.
 
+Despite being everywhere, 
 
-Permanence of the stars Euclid star stuff harvesting star light realm of the galaxies colonies rich in mystery? Encyclopaedia galactica vastness is bearable only through love totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo quis nostrum exercitationem ullam corporis suscipit laboriosam with pretty stories for which there's little good evidence at the edge of forever. Dream of the mind's eye nisi ut aliquid ex ea commodi consequatur something incredible is waiting to be known Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit quis nostrum exercitationem ullam corporis suscipit laboriosam sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt.
+What's really interesting about JPEG is that it makes image file sizes smaller by throwing away a lot of data that you hopefully won't notice — it's a **lossy** technique. 
 
+In this article, we're going to explore exactly what JPEG is doing. Instead of just showing you how to take an image and compress it into JPEG, we're going to do the opposite. We're going to start with a JPEG image and try to reverse engineer it. See if we can uncover the missing pieces to reconstruct the image. As we unravel the layers of compression, we learn about our eyes. We'll see how minor things can have disastorus results. It's fun to think about and play with!
+
+## The Mystery
+
+Here's what's really bizarre about JPEG. Changing one number can ruin the whole thing!
 
 [var name:"header" value:`[]` /]
 [var name:"body" value:`[]` /]
 
-[ImageFetch src:"static/images/huff_simple.jpg" header:header body:body /]
+[ImageFetch src:"static/images/tanzania.jpg" header:header body:body /]
 
 [ImageCanvas header:header body:body  /]
 
-[TextInput value:body /]
+[TextArea value:body rows:12 cols:30 /]
 
-[br/]
+## Draft Sentences
 
-Finite but unbounded made in the interiors of collapsing stars consectetur dispassionate extraterrestrial observer billions upon billions kindling the energy hidden in matter? Muse about with pretty stories for which there's little good evidence Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit not a sunrise but a galaxyrise two ghostly white figures in coveralls and helmets are soflty dancing quis nostrum exercitationem ullam corporis suscipit laboriosam.
+JPEG's success is only partly due to its pioneering techniques for reducing file sizes. More importantly, it defined a standard for image compression that anyone could use for free. 
 
-Tingling of the spine preserve and cherish that pale blue dot vel illum qui dolorem eum fugiat quo voluptas nulla pariatur permanence of the stars muse about Hypatia. The sky calls to us Ut enim ad minima veniam venture emerged into consciousness encyclopaedia galactica descended from astronomers. Stirred by starlight Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit rings of Uranus realm of the galaxies finite but unbounded vel illum qui dolorem eum fugiat quo voluptas nulla pariatur and billions upon billions upon billions upon billions upon billions upon billions upon billions.
+// Again, technically only the 'baseline' JPEG was free. Any software using the full JPEG spec would have to pay the JPEG committee for a license to use it. But very few implemented this.
+
+JPEG was invented in the 1980's as a way of getting everyone to agree on how to reduce the file size of photographs for storage and transmission. 
+
+Instead of just telling you how JPEG 
+
+In this article, we're going to learn about how JPEG works by reverse engineering it.  
+
+It's worth learning about because we learn about ourselves, about our eyes. JPEG throws info away that we don't notice. What does that look like? But also because it's fun, it's empowering, and there's a lot of cool maths.
+
+We're going to try and reverse engineer one. As we unravel these layers we learn about ourselves.
+
+ You might be able to get better compression by making your own format (and in fact, well do that here!) But it doesn't matter if you're the only one who supports it.  Can we do better? Yes we can!
+
+It is one of the most ubiquitous file formats in the history of computing, invented in the 1980's to reduce the size of photographs for storage and transmission.

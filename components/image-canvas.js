@@ -10,26 +10,41 @@ class CustomD3Component extends D3Component {
     this.canvas = document.createElement('canvas');
     this.node.appendChild(this.canvas);
     this.createImage = this.createImage.bind(this);
+
+    // Fetch and save the "Image was corrupted!" placeholder.
+    const that = this;
+    fetch('static/images/corrupted.png')
+      .then(function(response){
+        return response.blob();
+      })
+      .then(createImageBitmap)
+      .then(function(imageBitmap) {
+        that.corruptedImage = imageBitmap;
+      })
+  }
+
+  draw(imageBitmap, width, height) {
+    const ctx = this.canvas.getContext('2d');
+    if (width && height) {
+      this.canvas.width = width;
+      this.canvas.height = height;
+    }
+    
+    ctx.drawImage(imageBitmap, 0, 0, this.canvas.width, this.canvas.height);
   }
 
   createImage (header, body) {
     const byteArray = new Uint8Array((header + ' ' + body).split(' ').map(parseFloat));
     let blob = new Blob([byteArray.buffer], {type: 'image/jpeg'});
+    const that = this;
 
     createImageBitmap(blob)
     .then((imageBitmap) => {
-      console.log(imageBitmap);
-      const ctx = this.canvas.getContext('2d');
-      try {
-        console.log(this.canvas.width, this.canvas.height)
-      } catch (e) {
-        console.log(e);
-      }
-      console.log('ctx', ctx);
-      this.canvas.width = imageBitmap.width;
-      this.canvas.height = imageBitmap.height;
-      ctx.drawImage(imageBitmap, 0, 0, imageBitmap.width, imageBitmap.height);
+      that.draw(imageBitmap, imageBitmap.width, imageBitmap.height);
     })
+    .catch((error) => {
+      that.draw(this.corruptedImage);
+    });
   }
 
   update(props, oldProps) {
