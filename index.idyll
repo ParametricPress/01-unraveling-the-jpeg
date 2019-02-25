@@ -22,41 +22,26 @@
 
 If you've ever used the internet, you've probably seen a JPEG image. JPEG is a standard for image compression that's brought us a world where colorful, high quality images are easily shared. From web pages, to email, to social media and smartphones, it's used billions of times per day across all of our devices every time we view or send images online. Without JPEG, the web would be a little less colorful, a lot slower, and possibly host a lot less cat pictures.
 
-Despite being everywhere, 
+Despite its ubiquity in our lives, JPEG is often treated as a black box. You might be aware that it's a **lossy** compression technique; it throws away data that we're not likely to notice to reduce file size, but what does that data look like? How does it decide what we will or won't notice? And is that assumption correct all the time? (Spoiler: it's not!)
 
-What's really interesting about JPEG is that it makes image file sizes smaller by throwing away a lot of data that you hopefully won't notice — it's a **lossy** technique. 
+There's even more mysteries that arise when we look at how JPEG images are stored. If you open a JPEG image in a text editor, you'll see the raw bytes; the list of numbers that represent this image on your computer. Below is an image and its raw bytes.
 
-In this article, we're going to explore exactly what JPEG is doing. Instead of just showing you how to take an image and compress it into JPEG, we're going to do the opposite. We're going to start with a JPEG image and try to reverse engineer it. See if we can uncover the missing pieces to reconstruct the image. As we unravel the layers of compression, we learn about our eyes. We'll see how minor things can have disastorus results. It's fun to think about and play with!
+// I want to communicate to the reader that everything we're doing here, they can do by editing the JPEG themselves, saving it, and opening it. That I'm teaching them here isn't some kind of simplified version, it's really the JPEG itself. But I'm not sure if that explanation is appropriate to put in the intro?
 
-## The Mystery
-
-Here's what's really bizarre about JPEG. Changing one number can ruin the whole thing!
+Try changing the first 17 to a 1 or 16. Or try changing the first 232 to 252.
 
 [var name:"header" value:`[]` /]
 [var name:"body" value:`[]` /]
-
+[TextArea value:body rows:12 cols:70 /]
 [ImageFetch src:"static/images/tanzania.jpg" header:header body:body /]
-
 [ImageCanvas header:header body:body  /]
 
-[TextArea value:body rows:12 cols:30 /]
+Changing this single number somehow alters the entire image, and quite spectacularly so! It's not too surprising that changing these numbers will change the colors in the image, but certain numbers seem to change, not the color...but the shape? To see what I mean, try changing the second 69 to 251 or greater and look at the top left corner of the image. These specific patterns are always hiding in there, no matter what JPEG image you use.
 
-## Draft Sentences
+This article will explore how JPEG works by reverse engineering it. You'll get to unravel each of these mysteries by changing the raw bytes and observing what they do to the image. I think it's valuable not just because it's important to understand the technology we use everyday, but learning about JPEG is also learning about visual perception, what details matter most to our eyes, as well as information theory, and a little bit of linear algebra.
 
-JPEG's success is only partly due to its pioneering techniques for reducing file sizes. More importantly, it defined a standard for image compression that anyone could use for free. 
-
-// Again, technically only the 'baseline' JPEG was free. Any software using the full JPEG spec would have to pay the JPEG committee for a license to use it. But very few implemented this.
-
-JPEG was invented in the 1980's as a way of getting everyone to agree on how to reduce the file size of photographs for storage and transmission. 
-
-Instead of just telling you how JPEG 
-
-In this article, we're going to learn about how JPEG works by reverse engineering it.  
-
-It's worth learning about because we learn about ourselves, about our eyes. JPEG throws info away that we don't notice. What does that look like? But also because it's fun, it's empowering, and there's a lot of cool maths.
-
-We're going to try and reverse engineer one. As we unravel these layers we learn about ourselves.
-
- You might be able to get better compression by making your own format (and in fact, well do that here!) But it doesn't matter if you're the only one who supports it.  Can we do better? Yes we can!
-
-It is one of the most ubiquitous file formats in the history of computing, invented in the 1980's to reduce the size of photographs for storage and transmission.
+/// Saying information theory and linear algebra gets me excited...would it turn off the casual reader? I started with "visual perception" for this reason, I assume it sounds less daunting/more exciting?
+// I don't want to make this intro too long, because I know it's more exciting to jump in, but there are a lot of reasons why it's cool to learn this that'll get revealed in the article, such as:
+// 1- Compression & encryption are both intimately related in information theory. So it's not just learning how to reduce the size of images, but also how to encrypt and hide secrets.
+// 2- For example, you could make a JPEG image a secret by taking out the quantization table frmo the header. No one else will be able to open it except for you and whoever you give the "key" to.
+// 3- There are some real, practical applications of this. Facebook strips the JPEG header to make their images fit in under 200 bytes.
