@@ -20,13 +20,13 @@
   source:""
 /]
 
-If you've ever used the internet, you've probably seen a JPEG image. JPEG is a standard for image compression that's brought us a world where colorful, high quality images are easily shared. From web pages, to email, to social media and smartphones, it's used billions of times per day across all of our devices every time we view or send images online. Without JPEG, the web would be a little less colorful, a lot slower, and possibly host a lot less cat pictures.
+If you've ever used the internet, you've probably seen a JPEG image. JPEG is a standard for image compression that's brought us a world where colorful, high quality images can easily be shared. From web pages, to email, to social media and smartphones, it's used billions of times per day across all of our devices every time we view or send images online. Without JPEG, the web would be a little less colorful, a lot slower, and possibly host a lot less cat pictures.
 
 Despite its ubiquity in our lives, JPEG is often treated as a black box. You might be aware that it's a **lossy** compression technique; it throws away data that we're not likely to notice to reduce file size, but what does that data look like? How does it decide what we will or won't notice? And is that assumption correct all the time? (Spoiler: it's not!)
 
 There's even more mysteries that arise when we look at how JPEG images are stored. If you open a JPEG image in a text editor, you'll see the raw bytes; the list of numbers that represent this image on your computer. Below is an image and its raw bytes.
 
-// I want to communicate to the reader that everything we're doing here, they can do by editing the JPEG themselves, saving it, and opening it. That I'm teaching them here isn't some kind of simplified version, it's really the JPEG itself. But I'm not sure if that explanation is appropriate to put in the intro?
+// I want to communicate to the reader that everything we're doing here, they can do by editing the JPEG themselves, saving it, and opening it. That I'm teaching them here isn't some kind of simplified version, it's really the JPEG itself. All I do is strip the header. But I'm not sure if that explanation is appropriate to put in the intro?
 
 Try changing the first 17 to a 1 or 16. Or try changing the first 232 to 252.
 
@@ -36,12 +36,44 @@ Try changing the first 17 to a 1 or 16. Or try changing the first 232 to 252.
 [ImageFetch src:"static/images/tanzania.jpg" header:header body:body /]
 [ImageCanvas header:header body:body  /]
 
-Changing this single number somehow alters the entire image, and quite spectacularly so! It's not too surprising that changing these numbers will change the colors in the image, but certain numbers seem to change, not the color...but the shape? To see what I mean, try changing the second 69 to 251 or greater and look at the top left corner of the image. These specific patterns are always hiding in there, no matter what JPEG image you use.
+Changing this single number somehow alters the entire image, and quite spectacularly so! It's not too surprising that changing these numbers will change the colors in the image, but certain numbers seem to change, not the color...but the shape? To see what I mean, try changing the second 69 to 251 or greater and look at the top left corner of the image. These checkboard patterns are always hiding in there, no matter what JPEG image you use.
 
-This article will explore how JPEG works by reverse engineering it. You'll get to unravel each of these mysteries by changing the raw bytes and observing what they do to the image. I think it's valuable not just because it's important to understand the technology we use everyday, but learning about JPEG is also learning about visual perception, what details matter most to our eyes, as well as information theory, and a little bit of linear algebra.
+This article will explore how JPEG works by reverse engineering it. You'll get to unravel each of these mysteries by changing the raw bytes and observing what they do to the image. I think learning about JPEG is valuable not just because it's important to understand the technology we use everyday, but also because as we peel off each layer of compression we'll learn about visual perception – what details matter most to our eyes, as well as information theory, and a little bit of linear algebra.
 
 /// Saying information theory and linear algebra gets me excited...would it turn off the casual reader? I started with "visual perception" for this reason, I assume it sounds less daunting/more exciting?
 // I don't want to make this intro too long, because I know it's more exciting to jump in, but there are a lot of reasons why it's cool to learn this that'll get revealed in the article, such as:
 // 1- Compression & encryption are both intimately related in information theory. So it's not just learning how to reduce the size of images, but also how to encrypt and hide secrets.
-// 2- For example, you could make a JPEG image a secret by taking out the quantization table frmo the header. No one else will be able to open it except for you and whoever you give the "key" to.
+// 2- For example, you could make a JPEG image a secret by taking out the quantization table from the header. No one else will be able to open it except for you and whoever you give the "key" to.
 // 3- There are some real, practical applications of this. Facebook strips the JPEG header to make their images fit in under 200 bytes.
+// 4- The linear algebra part is representing the JPEG as a DCT and that's just super cool because it applies not just to images, but also to sound, and really anything! And there's just something beautiful about being able to use the same technique on anything like that. Should I communicate that more here?
+
+## Why does one number change the entire image? 
+
+Let's see if we can find the same effect in a simpler image. Here's a 16x8 image that's just a black square and a white square. Try to find the number that changes everything without corrupting it. 
+
+[var name:"header2" value:`[]` /]
+[var name:"body2" value:`[]` /]
+[TextArea value:body2 rows:4 cols:50 /]
+[ImageFetch src:"static/images/huff_simple.jpg" header:header2 body:body2 /]
+[ImageCanvas header:header2 body:body2  /]
+
+The first number that has this property is 252. Changing it to 251 changes the black to white and the white to grey.
+
+To figure out why this is happening, a good general technique when reverse engineering is to try and re-invent the thing you're trying to understand. This is akin to solving a crime by putting yourself in the shoes of the suspect. Thinking about where _you_ would have hidden the weapon might help you find it.
+
+In this case, we know the goal of JPEG is to make the file size smaller – to use less bytes when representing the image. Here's what the black and white image would look like if we represented it as just a list of the color of every pixel.
+
+_Figure of the same as above, except it's about 16 * 8 * 3 = 384 numbers._ [br/]
+
+That's a lot more numbers. This is storing the color in 3 numbers (red, green, blue), for every pixel (16 * 8 = 128). But we don't _really_ need all that much to describe this simple image. Can you think of a way to represent this image with fewer bytes? One easy way for example is to just store a single color value for black & white, instead of using 3 numbers, since this image contains no color.
+
+// Do we need some kind of like, horizontal line break or something to indicate "Don't read on if you're not done thinking yet" ?
+
+The smallest reasonable representation I could think of is 8 numbers: store the color (3 numbers) followed by how many pixels have this color. That's 4 numbers per solid block.
+
+_Maybe would be cool to see a figure of how this would function?_ [br/]
+
+I say reasonable because we could technically store any image, no matter how big, in a single byte, by simply declaring that the number 0 represents that particular image. When I say "Mona Lisa", I've just communicated an entire image using just 2 words, but obviously, this won't work if I want to communicate images you've never seen before.
+
+Representing large areas that have the same color with 2 numbers instead of storing the color of every single pixel saves a huge amount of bytes. This is known as **Run-length encoding (RLE)** and is used in any situation when you have a lot of repeated values next to each other, not just on images. For example, audio files typically have long moments of silence at the beginning or the end, which you would benefit from this way of representing them.
+
