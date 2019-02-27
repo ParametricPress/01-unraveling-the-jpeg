@@ -128,7 +128,61 @@ This might sound ridiculous, but these numbers are indeed a dictionary for a mad
 
 ### Variable Length encoding
 
+The "255 196" byte pair marks the definition of a Huffman encoding table. It tells us how to read the numbers in the JPEG. So if we see a "146" that might be a "12" according to the Huffman table.
 
+// I considered dynamically computing and embedding the Huffman table here, but it doesn't map numbers to numbers, it maps bits to bits, so I think I need to explain the below stuff first.
+
+Why would you want to create a unique dictionary for each image like this? Imagine if you had an image, after doing all your compression, the numbers looked like this:
+
+```
+1 1 1 255 1 1
+```
+
+These are 6 decimal numbers. In binary, these are stored as:
+
+```
+00000001 00000001 00000001 11111111 00000001 00000001
+```
+
+That's a total of 48 bits. We use 8 bits per number so that we can store numbers up to 255, but that means we're wasting 7 bits on almost all of our numbers here. Ideally, you'd store every number in as many bits it needs, so it would be:
+
+```
+1   1   1   11111111    1   1
+```
+
+This is now only 13 bits. We've just made our data over (13/48) 3x as small! That's like taking a 10 MB image, too big for a web page, and squeezing it into 3 MB, just by removing unnecessary bits.
+
+There's one problem though - I deliberately spaced out the numbers when showing it so you'd know where each one starts and ends. But when you're reading bits in a file, this is what you'd get:
+
+```
+1111111111111
+```
+
+These are the 13 bits. Is the first number a 1? Or is a 11 (so  2 in decimal)? Or is a 11111111?
+
+This is a fun problem to try and solve. For example, you could say you'll put a stop marker in there, maybe it's "0". But then you have to figure out a way to represent "0"! I won't spoil it, but Huffman encoding is the answer. It is the most efficient way of packing a string of bits without using start/stop markers. There are many good explanations on it, [here's](TODO:link to ComputerPhile video?) one of my favorite.
+
+As long as we understand that to make sense out of these numbers, we must first translate them based on the Huffman tables, we can keep going. As an example, for the simple image, here's what the first Huffman table looks like:
+
+[br/][br/]_Embed Huffman table. This would be cool if done dynamically, so you could drag and drop an image and see its table._[br/][br/]
+
+So while the first two numbers look like "X Y", to uncover what they really are, we unpack them into their binary bits:
+
+```
+binary bits here
+```
+
+And notice that the first sequence is "W" from the table. (We then have to take this and further decode it from another Huffman table, this one not found in the file anywhere, but in the JPEG spec. But this detail isn't that important right now?)
+
+Doing this for the whole image, we get the following representation:
+
+[br/][br/]_Figure of image, same as previous, textbox and image, except now it's all the DCT coefficients_.[br/][br/]
+
+Interested readers can see exactly how to perform this step in the source code.
+
+You might have hoped what we'd have now is finally raw color values, but a few seconds of playing around with the numbers above shows this is not the case. None of the steps we've uncovered so far could have had any data lost or thrown away, they were all **lossless** compression steps. The defining feature of JPEG is its lossy nature, so there's bound to be more to the story.
+
+// I'll have something more concrete to say/point out here when I have this demo.
 
 ## Where do the mysterious checkboard patterns come from?
 
