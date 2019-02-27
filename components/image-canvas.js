@@ -48,7 +48,7 @@ class CustomD3Component extends D3Component {
   }
 
   update(props, oldProps) {
-    if (props.body !== oldProps.body) {
+    if (props.body !== oldProps.body || props.header !== oldProps.header) {
       this.createImage(props.header, props.body);
     }
   }

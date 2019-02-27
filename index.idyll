@@ -38,7 +38,9 @@ Try changing the first 17 to a 1 or 16. Or try changing the first 232 to 252.
 
 Changing this single number somehow alters the entire image, and quite spectacularly so! It's not too surprising that changing these numbers will change the colors in the image, but certain numbers seem to change, not the color...but the shape? To see what I mean, try changing the second 69 to 251 or greater and look at the top left corner of the image. These checkboard patterns are always hiding in there, no matter what JPEG image you use.
 
-This article will explore how JPEG works by reverse engineering it. You'll get to unravel each of these mysteries by changing the raw bytes and observing what they do to the image. I think learning about JPEG is valuable not just because it's important to understand the technology we use everyday, but also because as we peel off each layer of compression we'll learn about visual perception – what details matter most to our eyes, as well as information theory, and a little bit of linear algebra.
+This article will explore how JPEG works by reverse engineering it. You'll get to unravel each of these mysteries by changing the raw bytes and observing what they do to the image! 
+
+I think learning about JPEG is valuable not just because it's important to understand the technology we use everyday, but also because as we peel off each layer of compression we'll learn about visual perception – what details matter most to our eyes, as well as information theory, and a little bit of linear algebra.
 
 /// Saying information theory and linear algebra gets me excited...would it turn off the casual reader? I started with "visual perception" for this reason, I assume it sounds less daunting/more exciting?
 // I don't want to make this intro too long, because I know it's more exciting to jump in, but there are a lot of reasons why it's cool to learn this that'll get revealed in the article, such as:
@@ -49,7 +51,7 @@ This article will explore how JPEG works by reverse engineering it. You'll get t
 
 ## Why does one number change the entire image? 
 
-Let's see if we can find the same effect in a simpler image. Here's a 16x8 image that's just a black square and a white square. Try to find the number that changes everything without corrupting it. 
+Let's look at this effect in a simpler image. Here's a 16x8 image that's just a black square and a white square. See if you can find the number that changes the whole image without corrupting it. 
 
 [var name:"header2" value:`[]` /]
 [var name:"body2" value:`[]` /]
@@ -57,23 +59,86 @@ Let's see if we can find the same effect in a simpler image. Here's a 16x8 image
 [ImageFetch src:"static/images/huff_simple.jpg" header:header2 body:body2 /]
 [ImageCanvas header:header2 body:body2  /]
 
-The first number that has this property is 252. Changing it to 251 changes the black to white and the white to grey.
+The first number that has this property is 252. Changing it to 251 changes the black to white and the white to grey. Other values bring out the checkboard patterns.
 
-To figure out why this is happening, a good general technique when reverse engineering is to try and re-invent the thing you're trying to understand. This is akin to solving a crime by putting yourself in the shoes of the suspect. Thinking about where _you_ would have hidden the weapon might help you find it.
+To figure out why this is happening, a good general technique when reverse engineering is to try and re-invent the thing you're trying to understand. This is akin to solving a crime by putting yourself in the shoes of the suspect. If you think about where _you_ would have hidden the weapon it might help you find it.
 
 In this case, we know the goal of JPEG is to make the file size smaller – to use less bytes when representing the image. Here's what the black and white image would look like if we represented it as just a list of the color of every pixel.
 
-_Figure of the same as above, except it's about 16 * 8 * 3 = 384 numbers._ [br/]
+[br/][br/]_Figure of the same as above, except it's about 16 * 8 * 3 = 384 numbers._ [br/][br/]
 
-That's a lot more numbers. This is storing the color in 3 numbers (red, green, blue), for every pixel (16 * 8 = 128). But we don't _really_ need all that much to describe this simple image. Can you think of a way to represent this image with fewer bytes? One easy way for example is to just store a single color value for black & white, instead of using 3 numbers, since this image contains no color.
+That's a lot more numbers. This is storing the color in 3 numbers (red, green, blue), for every pixel (it's a 16x8 image, so there's 16 * 8 = 128 pixels). But we don't _really_ need all that much to describe this simple image. Can you think of a way to represent this image with fewer bytes? For example, one easy way is to use 1 number for the color of each pixel instead of 3 since this image is just black and white.
 
 // Do we need some kind of like, horizontal line break or something to indicate "Don't read on if you're not done thinking yet" ?
 
-The smallest reasonable representation I could think of is 8 numbers: store the color (3 numbers) followed by how many pixels have this color. That's 4 numbers per solid block.
+The smallest reasonable representation I could think of is 8 numbers: store the color (3 numbers) followed by how many pixels have this color. That'll allow us to store each block of solid color in exactly 4 numbers.
 
-_Maybe would be cool to see a figure of how this would function?_ [br/]
+[br/][br/]_Figure of those 4 numbers with the resulting image._ [br/][br/]
 
-I say reasonable because we could technically store any image, no matter how big, in a single byte, by simply declaring that the number 0 represents that particular image. When I say "Mona Lisa", I've just communicated an entire image using just 2 words, but obviously, this won't work if I want to communicate images you've never seen before.
+We just made up our own format, and it's actually better than JPEG (in this one particular case)! If this were a real image, it would probably be _worse_ than just naively storing all the colors. Do you see why? 
 
-Representing large areas that have the same color with 2 numbers instead of storing the color of every single pixel saves a huge amount of bytes. This is known as **Run-length encoding (RLE)** and is used in any situation when you have a lot of repeated values next to each other, not just on images. For example, audio files typically have long moments of silence at the beginning or the end, which you would benefit from this way of representing them.
+The reason I said this is the "smallest reasonable representation" is because we could technically store any image, no matter how big, in a single number, by simply declaring that the number 0 represents that particular image. When I say "Mona Lisa", I've just communicated an entire image using just 2 words, but obviously, this won't work if I want to communicate images you've never seen before.
+
+Representing large areas that have the same color with 2 numbers instead of storing the color of every single pixel saves a huge amount of bytes. This is known as **Run-length encoding (RLE)** and is used in any situation when you have a lot of repeated values next to each other, not just on images. For example, audio files typically have long moments of silence at the beginning or the end, which would benefit from this way of representing them.
+
+// I want to mention delta-encoding here, but there's no way to justify it without introducing Huffman encoding. So maybe I'll skip that/get back to it later?
+
+You can actually go back and confirm that this is indeed what's happening. Try scrolling down and changing values closer to the bottom. Notice how as you go down in the list of numbers, changing a value only affects subsequent values!
+
+[var name:"header3" value:`[]` /]
+[var name:"body3" value:`[]` /]
+[TextArea value:body3 rows:12 cols:70 /]
+[ImageFetch src:"static/images/tanzania.jpg" header:header3 body:body3 /]
+[ImageCanvas header:header3 body:body3  /]
+
+// I think this is really important, when I finish an explanation, that the reader can go and verify this for themselves on a real image, even better if it's an image they drag and drop in. That way they know that they really are learning something applicable, that in this case allows them to do a kind of "magic trick", show their friends that they know how to mess around with the bytes to get a specific effect they know how to control! 
+
+## Why do some changes corrupt the image?
+
+RLE explains why numbers change subsequent colors, but why do some innocuous changes just outright "corrupt" the image? If you haven't seen this already try changing the very first number in any of the figures above. If you tried to open that edited JPEG image, it might say something like:
+
+[img src:"static/images/unsupported_windows.png"/]
+_This is what it says in the Windows photo app._[br/][br/]
+
+If these numbers represent colors, we wouldn't expect this to happen unless we did something like set a color to a negative value or something like that. But as we saw earlier, changing a 17 to 15 suddenly made the browser no longer capable of recognizing it as an image.
+
+This is admittedly the hardest part to reverse engineer without looking up the JPEG standard. As promised, before I explain it I'll give you a chance to uncover it yourself. The best hint I can give you is that we need to look at the header. Most articles on editing JPEGs will tell you not to touch it since it mostly contains metadata, like how big the image is, how many bytes to expect, etc. so changing those numbers easily makes the image unreadable.
+
+For example, the first two bytes in the body are the "Start of Image" marker. This is what marks a list of numbers a JPEG image, as opposed to a PNG, or a Word document (contrary to what operating systems might have you believe, the file extension really doesn't matter that much). This is the marker that the browser/photo viewers look for when deciding how to decode these numbers, so if it's not there, it won't know to read it as a JPEG. This is one way of corrupting an image.
+
+However, there is a string of special values in the header that we can always safely change, that will always have the most dramatic effect on the image. Look for a "255 196" pair (you can just CTRL+F this), then skip 19 bytes. The first number after will always have the most dramatic effect on the image, with subsequent numbers having less and less of an effect.
+
+There will always be up to four "255 196" pairs that have different effects.
+
+[var name:"header4" value:`[]` /]
+[var name:"body4" value:`[]` /]
+Body:[br/]
+[TextArea value:body4 rows:12 cols:70 /][br/]
+Header:[br/]
+[TextArea value:header4 rows:6 cols:70 /]
+[ImageFetch src:"static/images/tanzania.jpg" header:header4 body:body4 /]
+[ImageCanvas header:header4 body:body4  /]
+_In the real thing, this might be nice to have as switching tabs, from header to body, in the same way CodePen lets you have HTML/CSS tabs._[br/]
+
+// I noticed I never actually define "decode". I'd like to do that somewhere since it's a scary term but really just means "know how to read/translate a sequence of numbers".
+
+Without these four "255 196" pairs, and the numbers that follow, it would be practically impossible to decode the JPEG. It would be as if I just made up a new language that was particularly efficient at describing one particular painting. It might be a beautifully concise description, but it wouldn't make sense to anyone else.
+
+This might sound ridiculous, but these numbers are indeed a dictionary for a made up language-of-sorts unique to this particular image!
+
+### Variable Length encoding
+
+
+
+## Where do the mysterious checkboard patterns come from?
+
+This is to me the most fascinating part about the JPEG. This is also the part where the lossy part happens. 
+
+### Why represent images this way? 
+
+### What information do we toss away?
+
+## Chroma Sub-sampling 
+
+
 
