@@ -194,5 +194,12 @@ This is to me the most fascinating part about the JPEG. This is also the part wh
 
 ## Chroma Sub-sampling 
 
+We could stop here, but we'll be leaving one of the biggest mysteries on the table! Why YCbCr as opposed to RGB? It's because we can downsample color, separately from the image.
 
+This is a peculiar idea because, what _is_ the image if not a collection of color? Just like there are many ways to represent numbers, we can represent colors in different ways too. With RGB, you add these colors together. With YCbCr, you have the luminance, and then two color components.
 
+[br/][br/]_Show a 7 figure diagram. 1 image, and then 3 images for its RGB components separately. Then the 3 images for its YCbCr components separately.[br/][br/]
+
+We just so happen to be more sensitive to luminance. Possibly because of the way our vision evolved. Anyone will tell you that JPEG downsamples only the color because otherwise image would look bad, but I was very curious, what happens if we downsample luminance instead? 
+
+[br/][br/]_Dynamic figure of an image with sliders. I want to be able to see what happens when I downsample any individual component. And do this for RGB as well, since no JPEG editing program lets you do this.[br/][br/]
