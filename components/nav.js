@@ -66,7 +66,7 @@ class Nav extends React.PureComponent {
                     Decoding the JPEG
                   </div>
                   <div style={{fontStyle: 'italic', fontWeight: 300, fontFamily: 'Graphik'}}>
-                    By Omar Sheheta
+                    By Omar Shehata
                   </div>
                 </div>
                 <div style={{marginLeft: '1em', fontFamily: 'Graphik'}}>
@@ -80,7 +80,7 @@ class Nav extends React.PureComponent {
                     Decoding the JPEG
                   </div>
                   <div style={{fontStyle: 'italic', fontWeight: 300, fontFamily: 'Graphik'}}>
-                    By Omar Sheheta
+                    By Omar Shehata
                   </div>
                 </div>
                 <div style={{marginLeft: '1em', fontFamily: 'Graphik'}}>
@@ -94,7 +94,7 @@ class Nav extends React.PureComponent {
                     Decoding the JPEG
                   </div>
                   <div style={{fontStyle: 'italic', fontWeight: 300, fontFamily: 'Graphik'}}>
-                    By Omar Sheheta
+                    By Omar Shehata
                   </div>
                 </div>
                 <div style={{marginLeft: '1em', fontFamily: 'Graphik'}}>
@@ -108,7 +108,7 @@ class Nav extends React.PureComponent {
                     Decoding the JPEG
                   </div>
                   <div style={{fontStyle: 'italic', fontWeight: 300, fontFamily: 'Graphik'}}>
-                    By Omar Sheheta
+                    By Omar Shehata
                   </div>
                 </div>
                 <div style={{marginLeft: '1em', fontFamily: 'Graphik'}}>
@@ -122,7 +122,7 @@ class Nav extends React.PureComponent {
                     Decoding the JPEG
                   </div>
                   <div style={{fontStyle: 'italic', fontWeight: 300, fontFamily: 'Graphik'}}>
-                    By Omar Sheheta
+                    By Omar Shehata
                   </div>
                 </div>
                 <div style={{marginLeft: '1em', fontFamily: 'Graphik'}}>
@@ -136,7 +136,7 @@ class Nav extends React.PureComponent {
                     Decoding the JPEG
                   </div>
                   <div style={{fontStyle: 'italic', fontWeight: 300, fontFamily: 'Graphik'}}>
-                    By Omar Sheheta
+                    By Omar Shehata
                   </div>
                 </div>
                 <div style={{marginLeft: '1em', fontFamily: 'Graphik'}}>
