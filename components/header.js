@@ -1,60 +1,93 @@
 import React from 'react';
+import { TextContainer } from 'idyll-components';
 
+const formatTitle = (title) => {
+  return title.reduce((memo, str, i) => {
+    if (i < title.length - 1) {
+      return memo.concat([<span key={str}>{str}</span>, <br key={i} />]);
+    }
+    return memo.concat([<span key={str}>{str}</span>]);
+  }, [])
+}
 class Header extends React.PureComponent {
   render() {
+    const {longTitle, ...props} = this.props;
     return (
-      <div className={'article-header'} style={{marginTop: 30}}>
-        <div className="hed-container">
-        <h1 className={'hed'}>
-        <br/>
-          <span className="header-highlight">Unraveling</span> <br />
-          <span className="header-highlight">the JPEG</span><br />
-        <br />
-        </h1>
-        {
-          this.props.subtitle && (
-            <h2 className={'dek'}>
-              {this.props.subtitle}
-            </h2>
-          )
-        }
-        {
-          this.props.author && (
-            <div className={'byline'}>
-              By: <a href={this.props.authorLink}>{this.props.author}</a>
-            </div>
-          )
-        }
-        {
-          this.props.authors ? (
-            <div className={'byline'}>
-              By: {
-                this.props.authors.map((author, i) => {
-                  if (typeof author === 'string') {
-                    return author;
-                  }
-                  return author.link ? (
-                    <span key={author.name}>
-                      <a href={author.link} >{author.name}</a>{
-                        i < this.props.authors.length -1 ? (
-                          i === this.props.authors.length - 2 ? ' and ' :  ', ' )
-                        : ''}
-                    </span>
-                  ) : author.name;
-                })
-              }
-              {}
-            </div>
-          ) : null
-        }
-        {
-          this.props.date && (
-          <div className={'idyll-pub-date'}>
-            {this.props.date}
+      <div className={'article-header'} style={{marginTop: 0}}>
+        <div style={{
+          display: 'flex',
+          width: '100vw',
+          position: 'relative',
+          top: '4em'
+        }}>
+          <div style={{position: 'relative', height: 520, zIndex: 2}}>
+            <TextContainer {...props}>
+              <div style={{position: 'relative', width: 720}}>
+                <div style={{position: 'absolute', width: '100%', left: '-5em'}}>
+                    <h1 className={'hed'}>
+                      {
+                        formatTitle(this.props.title)
+                      }
+                    </h1>
+                    <h1 className={'hed hed-offset'}>
+                      {
+                        formatTitle(this.props.title)
+                      }
+                    </h1>
+                </div>
+                <div style={{width: 720, maxWidth: 720, position: 'relative', top: 120, fontSize: '12px', lineHeight: '20px', color: '#4801FF', fontFamily: 'Silkscreen'}}>
+                  <div>
+                    <div style={{fontWeight: 900, fontFamily: 'Graphik', fontSize: 48, lineHeight: '64px'}}>
+                      {formatTitle(this.props.longTitle)}
+                    </div>
+                    <div>
+                      {props.date}
+                    </div>
+                  </div>
+                  <div style={{display: 'flex', flexDirection: 'row'}}>
+                    <div>
+                      <div style={{fontWeight: 'bold'}}>
+                        Created By
+                      </div>
+                      <div>
+                        {
+                          this.props.authors.map(({name, role}) => {
+                            return <div key={name}><a>{name}</a> {role}</div>
+                          })
+                        }
+                      </div>
+                    </div>
+                    <div style={{marginLeft: '4em'}}>
+                      <div style={{fontWeight: 'bold'}}>
+                        Metadata
+                      </div>
+                      <div>
+                        <a>Source Code</a><br/>
+                        <a>Offline Archive</a><br/>
+                        {/* <a>DOI</a> */}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </TextContainer>
           </div>
-          )
-        }
-      </div>
+          <div style={{position: 'relative', top: 150}}>
+            <img src="static/images/jpeg.png" />
+          </div>
+          {/* <div style={{position: 'absolute', top: 0, right: 0}}> */}
+          {/* </div> */}
+          <h1 className="hed-rotate">
+            {
+              formatTitle(this.props.title)
+            }
+          </h1>
+        </div>
+        <TextContainer {...props}>
+          <div style={{fontFamily: 'Graphik', fontSize: 32, line: 48}}>
+            {this.props.dek}
+          </div>
+        </TextContainer>
       </div>
     );
   }

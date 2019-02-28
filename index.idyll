@@ -3,22 +3,20 @@
 [Nav fullWidth:true /]
 
 [Header
-  title:"Unraveling The JPEG"
-  fullWidth:true /]
-
-[Metadata
+  title:`["Unraveling", "The JPEG"]`
+  longTitle:`["Unraveling", "The JPEG"]`
+  date:"April 15, 2019"
+  dek:"Some text goes here about the details of the article. This should be short and engaging to draw people in."
   fullWidth:true
   authors:`[{
     name: "Omar Shehata",
-    role: 'Words, Graphics'
-  }, {
-    name: "Matthew Conlen",
-    role: 'Editor'
+    role: ''
   }]`
   doi:""
   archive:""
   source:""
 /]
+
 
 If you've ever used the internet, you've probably seen a JPEG image. JPEG is a standard for image compression that's brought us a world where colorful, high quality images can easily be shared. From web pages, to email, to social media and smartphones, it's used billions of times per day across all of our devices every time we view or send images online. Without JPEG, the web would be a little less colorful, a lot slower, and possibly host a lot less cat pictures.
 
@@ -38,7 +36,7 @@ Try changing the first 17 to a 1 or 16. Or try changing the first 232 to 252.
 
 Changing this single number somehow alters the entire image, and quite spectacularly so! It's not too surprising that changing these numbers will change the colors in the image, but certain numbers seem to change, not the color...but the shape? To see what I mean, try changing the second 69 to 251 or greater and look at the top left corner of the image. These checkboard patterns are always hiding in there, no matter what JPEG image you use.
 
-This article will explore how JPEG works by reverse engineering it. You'll get to unravel each of these mysteries by changing the raw bytes and observing what they do to the image! 
+This article will explore how JPEG works by reverse engineering it. You'll get to unravel each of these mysteries by changing the raw bytes and observing what they do to the image!
 
 I think learning about JPEG is valuable not just because it's important to understand the technology we use everyday, but also because as we peel off each layer of compression we'll learn about visual perception – what details matter most to our eyes, as well as information theory, and a little bit of linear algebra.
 
@@ -49,9 +47,9 @@ I think learning about JPEG is valuable not just because it's important to under
 // 3- There are some real, practical applications of this. Facebook strips the JPEG header to make their images fit in under 200 bytes.
 // 4- The linear algebra part is representing the JPEG as a DCT and that's just super cool because it applies not just to images, but also to sound, and really anything! And there's just something beautiful about being able to use the same technique on anything like that. Should I communicate that more here?
 
-## Why does one number change the entire image? 
+## Why does one number change the entire image?
 
-Let's look at this effect in a simpler image. Here's a 16x8 image that's just a black square and a white square. See if you can find the number that changes the whole image without corrupting it. 
+Let's look at this effect in a simpler image. Here's a 16x8 image that's just a black square and a white square. See if you can find the number that changes the whole image without corrupting it.
 
 [var name:"header2" value:`[]` /]
 [var name:"body2" value:`[]` /]
@@ -75,7 +73,7 @@ The smallest reasonable representation I could think of is 8 numbers: store the 
 
 [br/][br/]_Figure of those 4 numbers with the resulting image._ [br/][br/]
 
-We just made up our own format, and it's actually better than JPEG (in this one particular case)! If this were a real image, it would probably be _worse_ than just naively storing all the colors. Do you see why? 
+We just made up our own format, and it's actually better than JPEG (in this one particular case)! If this were a real image, it would probably be _worse_ than just naively storing all the colors. Do you see why?
 
 The reason I said this is the "smallest reasonable representation" is because we could technically store any image, no matter how big, in a single number, by simply declaring that the number 0 represents that particular image. When I say "Mona Lisa", I've just communicated an entire image using just 2 words, but obviously, this won't work if I want to communicate images you've never seen before.
 
@@ -91,7 +89,7 @@ You can actually go back and confirm that this is indeed what's happening. Try s
 [ImageFetch src:"static/images/tanzania.jpg" header:header3 body:body3 /]
 [ImageCanvas header:header3 body:body3  /]
 
-// I think this is really important, when I finish an explanation, that the reader can go and verify this for themselves on a real image, even better if it's an image they drag and drop in. That way they know that they really are learning something applicable, that in this case allows them to do a kind of "magic trick", show their friends that they know how to mess around with the bytes to get a specific effect they know how to control! 
+// I think this is really important, when I finish an explanation, that the reader can go and verify this for themselves on a real image, even better if it's an image they drag and drop in. That way they know that they really are learning something applicable, that in this case allows them to do a kind of "magic trick", show their friends that they know how to mess around with the bytes to get a specific effect they know how to control!
 
 ## Why do some changes corrupt the image?
 
@@ -186,20 +184,20 @@ You might have hoped what we'd have now is finally raw color values, but a few s
 
 ## Where do the mysterious checkboard patterns come from?
 
-This is to me the most fascinating part about the JPEG. This is also the part where the lossy part happens. 
+This is to me the most fascinating part about the JPEG. This is also the part where the lossy part happens.
 
-### Why represent images this way? 
+### Why represent images this way?
 
 ### What information do we toss away?
 
-## Chroma Sub-sampling 
+## Chroma Sub-sampling
 
 We could stop here, but we'll be leaving one of the biggest mysteries on the table! Why YCbCr as opposed to RGB? It's because we can downsample color, separately from the image.
 
 This is a peculiar idea because, what _is_ the image if not a collection of color? Just like there are many ways to represent numbers, we can represent colors in different ways too. With RGB, you add these colors together. With YCbCr, you have the luminance, and then two color components.
 
-[br/][br/]_Show a 7 figure diagram. 1 image, and then 3 images for its RGB components separately. Then the 3 images for its YCbCr components separately.[br/][br/]
+[br/][br/]_Show a 7 figure diagram. 1 image, and then 3 images for its RGB components separately. Then the 3 images for its YCbCr components separately._[br/][br/]
 
-We just so happen to be more sensitive to luminance. Possibly because of the way our vision evolved. Anyone will tell you that JPEG downsamples only the color because otherwise image would look bad, but I was very curious, what happens if we downsample luminance instead? 
+We just so happen to be more sensitive to luminance. Possibly because of the way our vision evolved. Anyone will tell you that JPEG downsamples only the color because otherwise image would look bad, but I was very curious, what happens if we downsample luminance instead?
 
-[br/][br/]_Dynamic figure of an image with sliders. I want to be able to see what happens when I downsample any individual component. And do this for RGB as well, since no JPEG editing program lets you do this.[br/][br/]
+[br/][br/]_Dynamic figure of an image with sliders. I want to be able to see what happens when I downsample any individual component. And do this for RGB as well, since no JPEG editing program lets you do this._[br/][br/]

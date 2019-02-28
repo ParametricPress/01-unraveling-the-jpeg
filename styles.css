@@ -1,7 +1,7 @@
 
-img {
+.idyll-text-container img {
   border: 1px solid black;
 }
-canvas {
+.idyll-text-container canvas {
   border: 1px solid black;
 }
