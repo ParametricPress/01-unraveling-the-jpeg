@@ -1,5 +1,61 @@
 
 @font-face {
+  font-family: 'Graphik Web';
+  src: url('fonts/graphik/Graphik-BlackItalic-Web.woff2') format('woff2'),
+       url('fonts/graphik/Graphik-BlackItalic-Web.woff') format('woff');
+  font-weight:  800;
+  font-style:   italic;
+  font-stretch: normal;
+}
+
+@font-face {
+  font-family: 'Graphik Web';
+  src: url('fonts/graphik/Graphik-Black-Web.woff2') format('woff2'),
+       url('fonts/graphik/Graphik-Black-Web.woff') format('woff');
+  font-weight:  800;
+  font-style:   normal;
+  font-stretch: normal;
+}
+
+@font-face {
+  font-family: 'Graphik Web';
+  src: url('fonts/graphik/Graphik-BoldItalic-Web.eot');
+  src: url('fonts/graphik/Graphik-BoldItalic-Web.eot?#iefix') format('embedded-opentype'),
+       url('fonts/graphik/Graphik-BoldItalic-Web.woff2') format('woff2'),
+       url('fonts/graphik/Graphik-BoldItalic-Web.woff') format('woff');
+  font-weight:  700;
+  font-style:   italic;
+  font-stretch: normal;
+}
+
+@font-face {
+  font-family: 'Graphik Web';
+  src: url('fonts/graphik/Graphik-Bold-Web.woff2') format('woff2'),
+       url('fonts/graphik/Graphik-Bold-Web.woff') format('woff');
+  font-weight:  700;
+  font-style:   normal;
+  font-stretch: normal;
+}
+
+@font-face {
+  font-family: 'Graphik Web';
+  src: url('fonts/graphik/Graphik-MediumItalic-Web.woff2') format('woff2'),
+       url('fonts/graphik/Graphik-MediumItalic-Web.woff') format('woff');
+  font-weight:  500;
+  font-style:   italic;
+  font-stretch: normal;
+}
+
+@font-face {
+  font-family: 'Graphik Web';
+  src: url('fonts/graphik/Graphik-Medium-Web.woff2') format('woff2'),
+       url('fonts/graphik/Graphik-Medium-Web.woff') format('woff');
+  font-weight:  500;
+  font-style:   normal;
+  font-stretch: normal;
+}
+
+@font-face {
   font-family: 'Bluu';
   src: url('fonts/bluu/bluunext-bold-webfont.woff2') format('woff2'),
        url('fonts/bluu/bluunext-bold-webfont.woff') format('woff'),
@@ -1083,8 +1139,8 @@ img {
 
 h1.hed {
   opacity: 0.1;
-  font-family: "Graphik";
-  font-weight: 900;
+  font-family: "Graphik Web";
+  font-weight: 800;
   font-size: 240px;
   color: #4801FF;
   line-height: 200px;
@@ -1098,8 +1154,8 @@ h1.hed-offset {
 }
 
 h1.hed-rotate {
-  font-family: "Graphik";
-  font-weight: 900;
+  font-family: "Graphik Web";
+  font-weight: 800;
   font-size: 240px;
   color: #222222;
 /* Safari */
