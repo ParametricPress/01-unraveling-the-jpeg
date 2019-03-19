@@ -28,13 +28,15 @@ There's even more mysteries that arise when we look at how JPEG images are store
 
 Try changing the first 17 to a 1 or 16. Or try changing the first 232 to 252.
 
-[var name:"header" value:`[]` /]
-[var name:"body" value:`[]` /]
-[TextArea value:body rows:12 cols:70 /]
-[ImageFetch src:"static/images/tanzania.jpg" header:header body:body /]
-[ImageCanvas header:header body:body  /]
+// [var name:"header" value:`[]` /]
+// [var name:"body" value:`[]` /]
+// [TextArea value:body rows:12 cols:70 /]
+// [ImageFetch src:"static/images/tanzania.jpg" header:header body:body /]
+// [ImageCanvas header:header body:body  /]
 
-Changing this single number somehow alters the entire image, and quite spectacularly so! It's not too surprising that changing these numbers will change the colors in the image, but certain numbers seem to change, not the color...but the shape? To see what I mean, try changing the second 69 to 251 or greater and look at the top left corner of the image. These checkboard patterns are always hiding in there, no matter what JPEG image you use.
+[RawEditor ref:"rawEditor1" fullWidth:true imageUrl:"static/images/tanzania.jpg" /]
+
+[EditorLink editor:`refs.rawEditor1` line:1 search:232 replace:252]Changing this single number[/EditorLink] somehow alters the entire image, and quite spectacularly so! It's not too surprising that changing these numbers will change the colors in the image, but certain numbers seem to change, not the color...but the shape? To see what I mean, try changing the second 69 to 251 or greater and look at the top left corner of the image. These checkboard patterns are always hiding in there, no matter what JPEG image you use.
 
 This article will explore how JPEG works by reverse engineering it. You'll get to unravel each of these mysteries by making changes like this, observing what they do to the image, and gathering clues!
 
@@ -46,6 +48,9 @@ I think learning about JPEG is valuable not just because it's important to under
 // 2- For example, you could make a JPEG image a secret by taking out the quantization table from the header. No one else will be able to open it except for you and whoever you give the "key" to.
 // 3- There are some real, practical applications of this. Facebook strips the JPEG header to make their images fit in under 200 bytes.
 // 4- The linear algebra part is representing the JPEG as a DCT and that's just super cool because it applies not just to images, but also to sound, and really anything! And there's just something beautiful about being able to use the same technique on anything like that. Should I communicate that more here?
+
+[DctEditor fullWidth:true imageUrl:"static/images/tanzania.jpg" /]
+
 
 ## Why does one number change the entire image?
 
@@ -216,13 +221,13 @@ We can actually do this ourselves now. Below is that "A" image, and you can sele
 
 [br/][br/]_If it's too hard to do this in the raw numbers, we might just have a nicer format/sliders here. The point is that this will be the first viz I've ever seen that lets me really understand this popular animation._[br/][br/]
 
-You'll hear them called "waves", because this checkboard pattern is really a 3D plot, where the color represents the "height". 
+You'll hear them called "waves", because this checkboard pattern is really a 3D plot, where the color represents the "height".
 
 [br/][br/]_Side by side of the checkboard pattern, next to its 3D plot, and the equation generating it, which you can change, so you really understand why it's a 'wave'._[br/][br/]
 
-This seems a bit like magic. These cosine waves are not generated for each image. Every possible image that has ever existed, or will ever existed, is a combination of these, specific, 64 patterns. This is known as a basis in Linear Algebra. 
+This seems a bit like magic. These cosine waves are not generated for each image. Every possible image that has ever existed, or will ever existed, is a combination of these, specific, 64 patterns. This is known as a basis in Linear Algebra.
 
-// I want to say somewhere, it's not _that_ magical because it's the same thing as saying, I can represent any location in the entire universe, as some combineation of 3 steps: move up, move forward, move right. 
+// I want to say somewhere, it's not _that_ magical because it's the same thing as saying, I can represent any location in the entire universe, as some combineation of 3 steps: move up, move forward, move right.
 
 ### Why represent images this way?
 
@@ -234,7 +239,7 @@ So while it takes the same amount of information to store the image in both ways
 
 This is exactly the same reason JPEG uses YCbCr instead of RGB. To represent the color of any given pixel, it takes the 3 numbers, whether you're using RGB or YCbCr, but if you were forced to throw away 2 of those numbers, the image with just Y would look much better than the image with R, G, or B (or Cb or Cr).
 
-### Tossing away information 
+### Tossing away information
 
 Let's see what this looks like! Let's do some vision experiments. Here is an image with all of its DCT coefficients. Try removing each to see how many you can get to 0 and still get a recognizable image.
 
