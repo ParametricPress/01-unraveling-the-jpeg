@@ -6,7 +6,7 @@
   title:`["Unraveling", "The JPEG"]`
   longTitle:`["Unraveling", "The JPEG"]`
   date:"April 15, 2019"
-  dek:"JPEG images are everywhere, yet how they work remains a mystery to most. The secret is getting rid of almost unnoticeable details to get the smallest filesize - but what does that look like? Let's see what our eyes can't see!"
+  dek:"<Some text goes here about the details of the article. This should be short and engaging to draw people in.>"
   fullWidth:true
   authors:`[{
     name: "Omar Shehata",
@@ -17,39 +17,45 @@
   source:""
 /]
 
-// IDEA for the header: It should be a pre-computed image at various stages of % of cosine waves, and either as you scroll down, or as you hover, it goes from 100% to 0.0001%. It would look super cool!
+If you've ever used the internet, you've probably seen a JPEG image. JPEG is a standard for image compression, named after the committee that created it, the Joint Photographic Expert Group. It's brought us a world where colorful, high quality images can easily be shared. From web pages, to email, to social media and smartphones, it's used billions of times per day across all of our devices every time we view or send images online. Without JPEG, the web would be a little less colorful, a lot slower, and possibly host a lot less cat pictures.
 
-If you've ever used the internet, you've probably seen a JPEG image. JPEG is a standard for image compression that's brought us a world where colorful, high quality images can easily be shared. From web pages, to email, to social media and smartphones, it's used billions of times per day across all of our devices every time we view or send images online. Without JPEG, the web would be a little less colorful, a lot slower, and probably have a lot less cat pictures!
+Despite its ubiquity in our lives, JPEG is often treated as a black box. You might be aware that it's a **lossy** compression technique; it throws away data that we're not likely to notice to reduce file size, but what does that data look like? How does it decide what we will or won't notice? And is that assumption correct all the time? (Spoiler: it's not!)
 
-In this article we're going to learn about JPEG by cracking open an image and playing with its raw bytes. Our goal is to understand what it takes to go from the JPEG file on your computer to what you see on the screen. It's worth learning about not just because it's important to understand the technology that we all use everyday, but as we unravel the layers of compression that make up a JPEG, we learn a little bit about ourselves, about what details our eyes are most sensitive to. Along the way we'll also encounter some very fascinating mathematics, like how to represent an image as a sum of waves, and why you'd ever want to do that!
+There's even more mysteries that arise when we look at how JPEG images are stored. If you open a JPEG image in a text editor, you'll see the raw bytes; the list of numbers that represent this image on your computer. Below is an image and its raw bytes.
 
-It's also just a lot of fun to play with images this way:
+// I want to communicate to the reader that everything we're doing here, they can do by editing the JPEG themselves, saving it, and opening it. That I'm teaching them here isn't some kind of simplified version, it's really the JPEG itself. All I do is strip the header. But I'm not sure if that explanation is appropriate to put in the intro?
 
-[img src:"static/images/glitchy-cat.gif"/]
-[br/]
+Try changing the first 17 to a 1 or 16. Or try changing the first 232 to 252.
 
-What's most impressive about JPEG is how ubiquitous it is. We take it for granted that we can send pictures to friends without worrying about whether it's compatible with the device, browser, or operating system they're using. It wasn't always this way, and this was exactly the reason the Joint Photographic Experts Group (JPEG) was established in 1986. Their goal was to create an efficient way of storing and sending images that we can all agree on. 
+[var name:"header" value:`[]` /]
+[var name:"body" value:`[]` /]
+[TextArea value:body rows:12 cols:70 /]
+[ImageFetch src:"static/images/tanzania.jpg" header:header body:body /]
+[ImageCanvas header:header body:body  /]
 
-Let's see what they came up with.
+Changing this single number somehow alters the entire image, and quite spectacularly so! It's not too surprising that changing these numbers will change the colors in the image, but certain numbers seem to change, not the color...but the shape? To see what I mean, try changing the second 69 to 251 or greater and look at the top left corner of the image. These checkboard patterns are always hiding in there, no matter what JPEG image you use.
 
-## What's in a JPEG?
+This article will explore how JPEG works by reverse engineering it. You'll get to unravel each of these mysteries by making changes like this, observing what they do to the image, and gathering clues!
 
+I think learning about JPEG is valuable not just because it's important to understand the technology we all use everyday, but also because as we peel off each layer of compression we'll learn about visual perception – what details matter most to our eyes, as well as information theory, and a little bit of linear algebra.
 
+[DCTEditor /]
+
+/// Saying information theory and linear algebra gets me excited...would it turn off the casual reader? I started with "visual perception" for this reason, I assume it sounds less daunting/more exciting?
+// I don't want to make this intro too long, because I know it's more exciting to jump in, but there are a lot of reasons why it's cool to learn this that'll get revealed in the article, such as:
+// 1- Compression & encryption are both intimately related in information theory. So it's not just learning how to reduce the size of images, but also how to encrypt and hide secrets.
+// 2- For example, you could make a JPEG image a secret by taking out the quantization table from the header. No one else will be able to open it except for you and whoever you give the "key" to.
+// 3- There are some real, practical applications of this. Facebook strips the JPEG header to make their images fit in under 200 bytes.
+// 4- The linear algebra part is representing the JPEG as a DCT and that's just super cool because it applies not just to images, but also to sound, and really anything! And there's just something beautiful about being able to use the same technique on anything like that. Should I communicate that more here?
 
 ## Why does one number change the entire image?
 
-[EditorLink editor:`refs.rawEditor1` line:1 search:232 replace:252]Changing this single number[/EditorLink].
-
-[RawEditor ref:"rawEditor1" fullWidth:true imageUrl:"static/images/tanzania.jpg" /]
-
 Let's look at this effect in a simpler image. Here's a 16x8 image that's just a black square and a white square. See if you can find the number that changes the whole image without corrupting it.
-
-[DctEditor fullWidth:true imageUrl:"static/images/tanzania.jpg" /]
 
 [var name:"header2" value:`[]` /]
 [var name:"body2" value:`[]` /]
 [TextArea value:body2 rows:4 cols:50 /]
-[ImageFetch src:"static/images/huff_simple.jpg" header:header2 body:body2 /]
+[ImageFetch src:"static/images/huff_simple.jpg" header:header2 body:body2 decode:true /]
 [ImageCanvas header:header2 body:body2  /]
 
 The first number that has this property is 252. Changing it to 251 changes the black to white and the white to grey. Other values bring out the checkboard patterns.
@@ -211,13 +217,13 @@ We can actually do this ourselves now. Below is that "A" image, and you can sele
 
 [br/][br/]_If it's too hard to do this in the raw numbers, we might just have a nicer format/sliders here. The point is that this will be the first viz I've ever seen that lets me really understand this popular animation._[br/][br/]
 
-You'll hear them called "waves", because this checkboard pattern is really a 3D plot, where the color represents the "height".
+You'll hear them called "waves", because this checkboard pattern is really a 3D plot, where the color represents the "height". 
 
 [br/][br/]_Side by side of the checkboard pattern, next to its 3D plot, and the equation generating it, which you can change, so you really understand why it's a 'wave'._[br/][br/]
 
-This seems a bit like magic. These cosine waves are not generated for each image. Every possible image that has ever existed, or will ever existed, is a combination of these, specific, 64 patterns. This is known as a basis in Linear Algebra.
+This seems a bit like magic. These cosine waves are not generated for each image. Every possible image that has ever existed, or will ever existed, is a combination of these, specific, 64 patterns. This is known as a basis in Linear Algebra. 
 
-// I want to say somewhere, it's not _that_ magical because it's the same thing as saying, I can represent any location in the entire universe, as some combineation of 3 steps: move up, move forward, move right.
+// I want to say somewhere, it's not _that_ magical because it's the same thing as saying, I can represent any location in the entire universe, as some combineation of 3 steps: move up, move forward, move right. 
 
 ### Why represent images this way?
 
@@ -229,7 +235,7 @@ So while it takes the same amount of information to store the image in both ways
 
 This is exactly the same reason JPEG uses YCbCr instead of RGB. To represent the color of any given pixel, it takes the 3 numbers, whether you're using RGB or YCbCr, but if you were forced to throw away 2 of those numbers, the image with just Y would look much better than the image with R, G, or B (or Cb or Cr).
 
-### Tossing away information
+### Tossing away information 
 
 Let's see what this looks like! Let's do some vision experiments. Here is an image with all of its DCT coefficients. Try removing each to see how many you can get to 0 and still get a recognizable image.
 
@@ -260,6 +266,3 @@ There's absolutely nothing stopping us from doing this to the whole image! JPEG 
 But DCT is supposed to let you represent _any_ image, using these coefficients, so what does this look like? I wanted to see it. Here's a sandbox for you to try this out, on any image you like!
 
 [br/][br/]_Interactive DCT for the whole image. If it can't be done in real time, post pictures of it here and link to the GitHub wit instructions on how to do it._[br/][br/]
-
-// In order to see the details we can't see, just look at the last 10% instead of the first 10%. You won't see anything, but then <click this link> to muliply them all by 100.
-// It would be really nice on the GitHub or something to document how to create new links, so people could extend this system to use the links to make up for what the UI can't do easily.
