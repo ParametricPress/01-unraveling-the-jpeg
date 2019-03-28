@@ -3,6 +3,7 @@ var ace = require('brace');
 var {fastDctLee} = require('./FastDct');
 require('brace/mode/assembly_x86');
 require('brace/theme/monokai');
+require('brace/ext/searchbox'); 
 
 function pad(array) {
 	// Pad an array with 0's to reach a power of 2 length.
@@ -12,6 +13,8 @@ function pad(array) {
 	}
 	return array;
 }
+
+let corruptedCache = {};
 
 let componentMap = {
 	'Y' : 0,
@@ -52,26 +55,43 @@ class ImageUtilities {
 		let that = this;
 		this.editMode = options.editMode;
 		this.corruptedImage = options.corruptedImage;
+		if (this.corruptedImage == undefined) {
+			this.corruptedImage = 'corrupted.png';
+		}
+		// Load the corrupted image from the cache if it exists.
+		if (corruptedCache[this.corruptedImage]) {
+			this.corruptedImage = corruptedCache[this.corruptedImage];
+		} else {
+			fetch('static/images/' + this.corruptedImage)
+			.then(function(response) {
+				return response.blob();
+			})
+			.then(function(blob) {
+				return createImageBitmap(blob); 
+			})
+			.then(function(imageBitmap) {
+				corruptedCache[that.corruptedImage] = imageBitmap;
+				that.corruptedImage = imageBitmap;
+			})
+			.catch(function(error) {
+				console.log("Error creating corrupted image", error);
+			})
+		}
+
 		this.highlightPixelOnClick = options.highlightPixelOnClick;
 
-    console.log('initing', url);
 		this.readyPromise = fetch(url)
 			.then(function(response) {
-        console.log('fetched');
 				return response.arrayBuffer();
 			})
 			.then(function(buffer) {
-        console.log('got the buffer');
 				if (that.editMode == 'raw') {
-          console.log('raw edit mode');
 					let data = getHeaderAndBody(buffer);
 					that.body = data.body;
 					that.header = data.header;
+					that.totalBytes = that.header.concat(that.body);
 				} else {
-          console.log('normal edit mode');
           that.decodedImage = jpeg.decode(buffer, { useTArray:true });
-          console.log(that.decodedImage)
-          console.log('decoded');
 				}
 			})
 			.catch(function(error) {
@@ -83,7 +103,7 @@ class ImageUtilities {
 		if (this.editMode == 'raw') {
 			// Update the body, since it's the only thing in the editor right now
 			let values  = this.getValuesFromEditor();
-			this.body = values;
+			this.totalBytes = values;
 			this.drawRawBytes();
 		}
 
@@ -164,7 +184,6 @@ class ImageUtilities {
 	}
 
 	reEncodeImage() {
-    console.log('re-encoding component');
 		let decodedImage = this.decodedImage;
 
 		decodedImage._decoder.components = [];
@@ -256,11 +275,11 @@ class ImageUtilities {
 		this.editor = editor;
 		let that = this;
 		editor.setTheme("ace/theme/monokai");
-	    editor.session.setMode("ace/mode/assembly_x86");
-	    editor.getSession().setUseWrapMode(true);
-	    editor.getSession().on('change', function() {
-	    	that.onEditorChange();
-	    });
+		editor.session.setMode("ace/mode/assembly_x86");
+		editor.getSession().setUseWrapMode(true);
+		editor.getSession().on('change', function() {
+			that.onEditorChange();
+		});
 		// Create canvas
 		let viewerElement = document.createElement('div');
 		let canvas = document.createElement('canvas');
@@ -275,12 +294,15 @@ class ImageUtilities {
 				var rect = event.target.getBoundingClientRect();
 				var x = event.clientX - rect.left; //x position within the element.
 				var y = event.clientY - rect.top;  //y position within the element.
+				
 				// Need to know which component, to get the scale.
 				let componentData = that.decodedImage._decoder.frames[0].components[componentMap['Y'] + 1];// Hardcoded to 'Y';
 				let scale = 1;
+				// TODO This breaks if canvas is scaled.
 				// Then divide x and y by 8
 				x /= 8; y/= 8;
 				x /= scale; y/= scale;
+				
 				// Then the line no is x * blocksPerLine + y * blocksPerColumn
 				let lineNo = Math.floor(x) + Math.floor(y) * componentData.blocksPerLine;
 				event.target.editor.scrollToLine(lineNo);
@@ -294,27 +316,29 @@ class ImageUtilities {
 	}
 
 	drawRawBytes() {
-		// Take the header and body bytes and draw them.
-		const byteArray = new Uint8Array((this.header + ',' + this.body).split(',').map(parseFloat));
+			const byteArray = new Uint8Array(this.totalBytes);
+			// For some reason, when you hit reset or click a link, it triggers twice, and totalBytes is 1?
+			if (this.totalBytes.length == 1) return;
+			// Take the header and body bytes and draw them.
+			//const byteArray = new Uint8Array((this.header + ',' + this.body).split(',').map(parseFloat));
     	let blob = new Blob([byteArray.buffer], {type: 'image/jpeg'});
     	let that = this;
 
-    	createImageBitmap(blob)
+			createImageBitmap(blob)
     	.then(function(imageBitmap) {
     		let canvas = that.canvas;
     		canvas.width = imageBitmap.width;
     		canvas.height = imageBitmap.height;
     		let ctx = canvas.getContext('2d');
-
     		ctx.drawImage(imageBitmap, 0, 0, imageBitmap.width, imageBitmap.height);
     	})
     	.catch(function(error) {
+				console.log(error);
     		let canvas = that.canvas;
     		let ctx = canvas.getContext('2d');
     		let corruptedImage = that.corruptedImage;
-
     		ctx.drawImage(corruptedImage, 0, 0, canvas.width, canvas.height);
-    	});
+    	})
 	}
 
 	drawDecodedImage() {
@@ -370,17 +394,13 @@ class ImageUtilities {
 	}
 
 	getDecodedComponent(component) {
-    console.log('gdc 1')
-    console.log(this.decodedImage._decoder.components);
-    let lines = this.decodedImage._decoder.components[componentMap[component]].lines;
-    console.log('gdc 2')
+    	let lines = this.decodedImage._decoder.components[componentMap[component]].lines;
 		let values = [];
 		for (let i = 0; i < lines.length; i++) {
 			for (let j = 0; j < lines[i].length; j++) {
 				values.push(lines[i][j])
 			}
 		}
-    console.log('gdc 3')
 		return values;
 	}
 

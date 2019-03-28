@@ -7,9 +7,9 @@ class TextArea extends React.Component {
     }
     onClick(e) {
       const { search, replace, line, editor } = this.props;
-      console.log(editor);
       const imageEditor = editor.component.imageEditor;
-      let text = imageEditor.editor.getSession().getValue();
+      let text = imageEditor.resetText;
+      //let text = imageEditor.editor.getSession().getValue();
       let lines = text.split('\n');
       for (let i = 0; i < lines.length; i++) {
         if (i == line - 1) {
@@ -19,7 +19,7 @@ class TextArea extends React.Component {
       }
       text = lines.join('\n');
       imageEditor.editor.setValue(text, -1);
-      imageEditor.editor.scrollToLine(line);
+      imageEditor.editor.scrollToLine(line - 1);
         // this.props.updateProps({ value: e.target.value });
     }
     render() {

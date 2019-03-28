@@ -1,0 +1,301 @@
+[meta title:"Unraveling The JPEG" description:"Short description of your project" /]
+
+[Nav fullWidth:true /]
+
+[Header
+  title:`["Unraveling", "The JPEG"]`
+  longTitle:`["Unraveling", "The JPEG"]`
+  date:"April 15, 2019"
+  dek:"JPEG images are everywhere, yet how they work remains a mystery to most. The secret is getting rid of almost unnoticeable details to get the smallest filesize - but what does that look like? Let's see what our eyes can't see!"
+  fullWidth:true
+  authors:`[{
+    name: "Omar Shehata",
+    role: ''
+  }]`
+  doi:""
+  archive:""
+  source:""
+/]
+
+// IDEA for the header: It should be a pre-computed image at various stages of % of cosine waves, and either as you scroll down, or as you hover, it goes from 100% to 0.0001%. It would look super cool!
+
+If you've ever used the internet, you've probably seen a JPEG image. JPEG is a standard for image compression that's brought us a world where colorful, high quality images can easily be shared. From web pages, to email, to social media and smartphones, it's used billions of times per day across all of our devices every time we view or send images online. Without JPEG, the web would be a little less colorful, a lot slower, and probably have a lot less cat pictures!
+
+In this article we're going to learn about JPEG by cracking open an image and playing with its raw bytes. Our goal is to understand what it takes to go from the JPEG file on your computer to what you see on the screen. It's worth learning about not just because it's important to understand the technology that we all use everyday, but as we unravel the layers of compression that make up a JPEG, we learn a little bit about ourselves, about what details our eyes are most sensitive to. Along the way we'll also encounter some very fascinating mathematics, like how to represent an image as a sum of waves, and why you'd ever want to do that!
+
+It's also just a lot of fun to play with images this way:
+
+[img src:"static/images/glitchy-cat.gif"/]
+[br/]
+
+What's most impressive about JPEG is how ubiquitous it is. We take it for granted that we can send pictures to friends without worrying about whether it's compatible with the device, browser, or operating system they're using. It wasn't always this way, and this was exactly the reason the Joint Photographic Experts Group (JPEG) was established in 1986. Their goal was to create a way of sending and storing images that we can all agree on. It had to be both efficient and easy enough to implement to be widely supported.
+
+Let's see what they came up with.
+
+/*
+Todo:
+* Fix "image corrupted" not showing up in the new editor?
+* It's hard to tell what the link changes when it's a single number. Maybe make it highlight or at least scroll correctly to it?
+* Make the full image DCT work with color too
+* Downscale color to various degrees
+* Downscale luminance to various degrees
+
+* Can we add a "% filesize of original" so as you toss away chunks you can see how small the new image is?
+
+*/
+
+## What's in a JPEG?
+
+If you open a JPEG image on your computer, you'll see this gibberish. Your computer is confused for the same reason your brain is confused when you see colors when you rub your eyes! 
+
+The nerves in your eye carry information to your brain that it _assumes_ is light information. What else could be coming from there? If you rub your eyes, the pressure is sent along the same route, interpreted as light, so you see things that don't make sense. They're called phosphenes. This is the same thing that's happening here. We haven't changed the image, it's just interpreted as text. 
+
+>>>>
+
+Everything on a computer is stored in numbers, and images are no different. If you open a JPEG file on your computer (and in fact, you can do everything we're doing in this article on your computer), you'll see the bytes. Here I'm showing them as decimal.
+
+There's something mysterious though. One number changes everything. There's weird patterns! And some things corrupt the image??
+
+## Inventing a way to represent images
+
+To see how JPEG is doing it it's helpful to try and do it ourselves. Let's just put everything as a series of numbers. Great!
+
+But that's too many numbers! What would you throw away? There isn't a single number we can throw away without making a noticable impact on the image. besides, our goal for compression is like 15x! (CHECK THIS). We need to be able to throw away a LOT more. 
+
+* We can average out blocks of color
+* Or we can downscale just one of the colors! That doesn't look too great
+* Let's try changing the color space. Prove to yourself that this looks way better, when only CbCr is downscaled
+* That's great, but we still can't really remove any more. 
+* 
+
+## Throwing away color 
+
+Our eyes are a lot more sensitive to green than they are to red & blue (maybe?? Just pick the right one. Do the experiment!) What if instead of storing RGB for each, we stored RB, and averaged the G? 
+
+Here's what that would look like, and a slider with varying levels 
+
+## Why does one number change the entire image?
+
+[EditorLink editor:`refs.rawEditor1` line:1 search:232 replace:252]Changing this single number[/EditorLink].
+
+[RawEditor ref:"rawEditor1" fullWidth:true imageUrl:"static/images/tanzania.jpg" /]
+
+Let's look at this effect in a simpler image. Here's a 16x8 image that's just a black square and a white square. See if you can find the number that changes the whole image without corrupting it.
+
+[DctEditor fullWidth:true imageUrl:"static/images/tanzania.jpg" /]
+
+[var name:"header2" value:`[]` /]
+[var name:"body2" value:`[]` /]
+[TextArea value:body2 rows:4 cols:50 /]
+[ImageFetch src:"static/images/huff_simple.jpg" header:header2 body:body2 /]
+[ImageCanvas header:header2 body:body2  /]
+
+The first number that has this property is 252. Changing it to 251 changes the black to white and the white to grey. Other values bring out the checkboard patterns.
+
+To figure out why this is happening, a good general technique when reverse engineering is to try and re-invent the thing you're trying to understand. This is akin to solving a crime by putting yourself in the shoes of the suspect. If you think about where _you_ would have hidden the weapon it might help you find it.
+
+In this case, we know the goal of JPEG is to make the file size smaller – to use less bytes when representing the image. Here's what the black and white image would look like if we represented it as just a list of the color of every pixel.
+
+[br/][br/]_Figure of the same as above, except it's about 16 * 8 * 3 = 384 numbers._ [br/][br/]
+
+That's a lot more numbers. This is storing the color in 3 numbers (red, green, blue), for every pixel (it's a 16x8 image, so there's 16 * 8 = 128 pixels). But we don't _really_ need all that much to describe this simple image. Can you think of a way to represent this image with fewer bytes? For example, one easy way is to use 1 number for the color of each pixel instead of 3 since this image is just black and white.
+
+The smallest reasonable representation I could think of is 8 numbers: store the color (3 numbers) followed by how many pixels have this color. That'll allow us to store each block of solid color in exactly 4 numbers.
+
+[br/][br/]_Figure of those 4 numbers with the resulting image._ [br/][br/]
+
+We just made up our own format, and it's actually better than JPEG (in this one particular case)! If this were a real image, it would probably be _worse_ than just naively storing all the colors. Do you see why?
+
+// Because in a real image, colors almost certainly change from pixel to pixel, so in the worst case this would be a naive list of pixels, plus 1 more byte for each pixel to say that this color is only present in one pixel.
+
+The reason I said this is the "smallest reasonable representation" is because we could technically store any image, no matter how big, in a single number, by simply declaring that the number 0 represents that particular image. When I say "Mona Lisa", I've just communicated an entire image using just 2 words, but obviously, this won't work if I want to communicate images you've never seen before.
+
+Representing large areas that have the same color with 2 numbers instead of storing the color of every single pixel saves a huge amount of bytes. This is known as **Run-length encoding (RLE)** and is used in any situation when you have a lot of repeated values next to each other, not just on images. For example, audio files typically have long moments of silence at the beginning or the end, which would benefit from this way of representing them.
+
+// I want to mention delta-encoding here, but there's no way to justify it without introducing Huffman encoding. So maybe I'll skip that/get back to it later?
+
+You can actually go back and confirm that this is indeed what's happening. Try scrolling down and changing values closer to the bottom. Notice how as you go down in the list of numbers, changing a value only affects subsequent values!
+
+[var name:"header3" value:`[]` /]
+[var name:"body3" value:`[]` /]
+[TextArea value:body3 rows:12 cols:70 /]
+[ImageFetch src:"static/images/tanzania.jpg" header:header3 body:body3 /]
+[ImageCanvas header:header3 body:body3  /]
+
+// I think this is really important, when I finish an explanation, that the reader can go and verify this for themselves on a real image, even better if it's an image they drag and drop in. That way they know that they really are learning something applicable, that in this case allows them to do a kind of "magic trick", show their friends that they know how to mess around with the bytes to get a specific effect they know how to control!
+
+## Why do some changes corrupt the image?
+
+RLE explains why numbers change subsequent colors, but why do some innocuous changes just outright "corrupt" the image? If you haven't seen this already try changing the very first number in any of the figures above. If you tried to open that edited JPEG image, it might say something like:
+
+[img src:"static/images/unsupported_windows.png"/]
+_This is what it says in the Windows photo app._[br/][br/]
+
+If these numbers represent colors, we wouldn't expect this to happen unless we did something like set a color to a negative value or something like that. But as we saw earlier, changing a 17 to 15 suddenly made the browser no longer capable of recognizing it as an image.
+
+This is admittedly the hardest part to reverse engineer without looking up the JPEG standard. As promised, before I explain it I'll give you a chance to uncover it yourself. The best hint I can give you is that we need to look at the header. Most articles on editing JPEGs will tell you not to touch it since it mostly contains metadata, like how big the image is, how many bytes to expect, etc. so changing those numbers easily makes the image unreadable.
+
+For example, the first two bytes in the body are the "Start of Image" marker. This is what marks a list of numbers a JPEG image, as opposed to a PNG, or a Word document (contrary to what operating systems might have you believe, the file extension really doesn't matter that much). This is the marker that the browser/photo viewers look for when deciding how to decode these numbers, so if it's not there, it won't know to read it as a JPEG. This is one way of corrupting an image.
+
+However, there is a string of special values in the header that we can always safely change, that will always have the most dramatic effect on the image. Look for a "255, 196" pair (you can just CTRL+F this), then skip 19 bytes. The first number after will always have the most dramatic effect on the image, with subsequent numbers having less and less of an effect.
+
+There can be up to four (and at least one) "255, 196" pairs that have different effects.
+
+[var name:"header4" value:`[]` /]
+[var name:"body4" value:`[]` /]
+Body:[br/]
+[TextArea value:body4 rows:12 cols:70 /][br/]
+Header:[br/]
+[TextArea value:header4 rows:6 cols:70 /]
+[ImageFetch src:"static/images/tanzania.jpg" header:header4 body:body4 /]
+[ImageCanvas header:header4 body:body4  /]
+_In the real thing, this might be nice to have as switching tabs, from header to body, in the same way CodePen lets you have HTML/CSS tabs._[br/]
+
+// I noticed I never actually define "decode". I'd like to do that somewhere since it's a scary term but really just means "know how to read/translate a sequence of numbers".
+
+Without these four "255, 196" pairs, and the numbers that follow, it would be practically impossible to decode the JPEG. It would be as if I just made up a new language that was particularly efficient at describing one particular painting. It might be a beautifully concise description, but it wouldn't make sense to anyone else.
+
+This might sound ridiculous, but these numbers are indeed a dictionary for a made up language-of-sorts unique to this particular image!
+
+### Variable Length encoding
+
+The "255, 196" byte pair marks the definition of a Huffman encoding table. It tells us how to read the bytes in the JPEG.
+
+// I considered dynamically computing and embedding the Huffman table here, but it doesn't map numbers to numbers, it maps bits to bits, so I think I need to explain the below stuff first.
+
+Why would you want to create a unique dictionary for each image like this? Imagine if you had an image, after doing all your compression, the numbers looked like this:
+
+```
+1 1 1 255 1 1
+```
+
+These are 6 decimal numbers. In binary, these are stored as:
+
+```
+00000001 00000001 00000001 11111111 00000001 00000001
+```
+
+That's a total of 48 bits. We use 8 bits per number so that we can store numbers up to 255, but that means we're wasting 7 bits on almost all of our numbers here. Ideally, you'd store every number in as many bits it needs and no more. So it would be:
+
+```
+1   1   1   11111111    1   1
+```
+
+This is now only 13 bits. We've just made our data over (13/48) 3x as small! That's like taking a 10 MB image, too big for a web page, and squeezing it into 3 MB, just by removing unnecessary bits, no change to the image quality whatsoever.
+
+There's one problem though - I deliberately spaced out the numbers when showing it so you'd know where each one starts and ends. But when you're reading bits in a file, this is what you'd get:
+
+```
+1111111111111
+```
+
+These are the 13 bits. Is the first number a 1? Or is it a 11 (a 3 in decimal)? Or is it a 11111111? We need a way to somehow know how many bits to read for each number.
+
+This is a fun problem to try and solve with many creative solutions. For example, you could say you'll put a stop marker in there, maybe it's "0". But then you have to figure out a way to represent "0"! I won't spoil it, but Huffman encoding is the answer. It is the most efficient way of packing a string of bits without using start/stop markers. There are many good explanations on it, [here's](TODO:link to ComputerPhile video?) one of my favorite.
+
+As long as we understand that to make sense out of these numbers, we must first translate them based on the Huffman tables, we can keep going. As an example, for the simple image, here's what the first Huffman table looks like:
+
+[br/][br/]_Embed Huffman table. This would be cool if done dynamically, so you could drag and drop an image and see its table._[br/][br/]
+
+So while the first two numbers look like "X, Y", to uncover what they really are, we unpack them into their binary bits:
+
+```
+binary bits here
+```
+
+And notice that the first sequence is "W" from the table. (We then have to take this and further decode it from another Huffman table, this one not found in the file anywhere, but in the JPEG spec. But this detail isn't that important right now?)
+
+Doing this for the whole image, we get the following representation:
+
+[br/][br/]_Figure of image, same as previous, textbox and image, except now it's all the DCT coefficients_.[br/][br/]
+
+(Interested readers can see exactly how to perform this step in the source code.)
+
+You might have hoped what we'd have now is finally raw color values, but a few seconds of playing around with the numbers above shows this is not the case. Notice that none of the steps we've uncovered so far could have had any data lost or thrown away, they were all **lossless** compression steps. The defining feature of JPEG is its lossy nature, so there's bound to be more to the story.
+
+// I'll have something more concrete to say/point out here when I have this demo.
+
+## Where do the mysterious checkboard patterns come from?
+
+// ** All claims and examples in this section are conceptual. I won't know for sure what it looks like until I've got the demo **
+
+Despite removing all but the final compression layer, what we have now is still far from a list of colors. We no longer get single numbers that change the whole image, since we've removed RLE. Changing numbers should have more predictable results now, since these numbers correspond directly to _something_, even if it's not color (as opposed to before, we couldn't tell where one number started and the other ended because of the variable length encoding).
+
+What is more pronounced though is the checkboard patterns. It's even more obvious in our simple image:
+
+[br/][br/]_interactive DCTs of simple image_.[br/][br/]
+
+This is my favorite part to reverse engineer. There's a very clear systematic pattern here. Higher numbers are denser patterns, with 0 and 1 being all white and all black respectively. Do you have any guesses on what's going on here?
+
+It takes a bit of leap to see how this works, so I'll give you one good hint. Here is one more JPEG images stripped down to what I'll call its "checkboard numbers".
+
+[br/][br/]_interactive DCTs of another simple image chosen such that it has many components, to give you the hint that these patterns are added together to make the image._[br/][br/]
+
+Try changing the numbers starting at X, setting them at 0, one by one. Can you see how these patterns represent the image?
+
+### Breaking down images
+
+What we're looking at here is the **Discrete Cosine Transforms** coefficients. These checkboard patterns are generated by cosine functions, which are them combined together to form the final image. The numbers we've got here, the coefficients, control how much of each pattern is represented. There are 64 total patterns.
+
+// So what we're essentially doing is instead of representing the image as a list of colors, (this is what a basis is in Linear Algebra).
+
+Here is a popular GIF from Wikipedia that's often used to show how these are added together to get an image:
+
+[img src:"static/images/wiki_dct.gif"/]
+
+We can actually do this ourselves now. Below is that "A" image, and you can selectively remove the patterns that make it up.
+
+[br/][br/]_If it's too hard to do this in the raw numbers, we might just have a nicer format/sliders here. The point is that this will be the first viz I've ever seen that lets me really understand this popular animation._[br/][br/]
+
+You'll hear them called "waves", because this checkboard pattern is really a 3D plot, where the color represents the "height".
+
+[br/][br/]_Side by side of the checkboard pattern, next to its 3D plot, and the equation generating it, which you can change, so you really understand why it's a 'wave'._[br/][br/]
+
+This seems a bit like magic. These cosine waves are not generated for each image. Every possible image that has ever existed, or will ever existed, is a combination of these, specific, 64 patterns. This is known as a basis in Linear Algebra.
+
+// I want to say somewhere, it's not _that_ magical because it's the same thing as saying, I can represent any location in the entire universe, as some combineation of 3 steps: move up, move forward, move right.
+
+### Why represent images this way?
+
+It's pretty cool to know you can represent an image as a _sum of cosine waves_ instead of a list of color values, but you should be asking yourself why anyone want to represent things in this esoteric way. Remember that our goal is to reduce the number of bytes needed to represent images, and it takes just as many bytes to represent images as a sum of waves as it does to represent them as a list of colors.
+
+We're not strict about keeping the image in its original form. If we can throw away some detail to make the image significantly smaller, that's great. The problem with our list-of-colors representation is that throwing away bytes just causes us to lose those pixels, we don't get a lower quality version of the same image.
+
+So while it takes the same amount of information to store the image in both ways, the DCT way makes it easier to _find things to throw away that won't change the image too much_.
+
+This is exactly the same reason JPEG uses YCbCr instead of RGB. To represent the color of any given pixel, it takes the 3 numbers, whether you're using RGB or YCbCr, but if you were forced to throw away 2 of those numbers, the image with just Y would look much better than the image with R, G, or B (or Cb or Cr).
+
+### Tossing away information
+
+Let's see what this looks like! Let's do some vision experiments. Here is an image with all of its DCT coefficients. Try removing each to see how many you can get to 0 and still get a recognizable image.
+
+[br/][br/]_._[br/][br/]
+
+What you just did here is what JPEG does, to every 64x64 pixel block in the image!
+
+<Point out that this way of representing data doesn't just apply to images. It works on anything! This is used in audio to remove noise for example>
+
+## Chroma Sub-sampling
+
+We could stop here, but we'll be leaving one of the biggest mysteries on the table! Why YCbCr as opposed to RGB? It's because we can downsample color, separately from the image.
+
+This is a peculiar idea because, what _is_ the image if not a collection of color? Just like there are many ways to represent numbers, we can represent colors in different ways too. With RGB, you add these colors together. With YCbCr, you have the luminance, and then two color components.
+
+[br/][br/]_Show a 7 figure diagram. 1 image, and then 3 images for its RGB components separately. Then the 3 images for its YCbCr components separately._[br/][br/]
+
+We just so happen to be more sensitive to luminance. Possibly because of the way our vision evolved. Anyone will tell you that JPEG downsamples only the color because otherwise image would look bad, but I was very curious, what happens if we downsample luminance instead?
+
+[br/][br/]_Dynamic figure of an image with sliders. I want to be able to see what happens when I downsample any individual component. And do this for RGB as well, since no JPEG editing program lets you do this._[br/][br/]
+
+## Discrete cosine transform for the whole image (optional/addendum)
+
+JPEG only applies the DCT to the image in 64x64 blocks. This is why most animations of it you'll see are on tiny images.
+
+There's absolutely nothing stopping us from doing this to the whole image! JPEG does it this way both for computationally efficiency and because at high compression rates, the whole image averaged out looks like a blob. But 64x64 blocks averaged out still looks recognizable.
+
+But DCT is supposed to let you represent _any_ image, using these coefficients, so what does this look like? I wanted to see it. Here's a sandbox for you to try this out, on any image you like!
+
+[br/][br/]_Interactive DCT for the whole image. If it can't be done in real time, post pictures of it here and link to the GitHub wit instructions on how to do it._[br/][br/]
+
+// In order to see the details we can't see, just look at the last 10% instead of the first 10%. You won't see anything, but then <click this link> to muliply them all by 100.
+// It would be really nice on the GitHub or something to document how to create new links, so people could extend this system to use the links to make up for what the UI can't do easily.
