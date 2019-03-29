@@ -21,7 +21,7 @@
 
 If you've ever used the internet, you've probably seen a JPEG image. JPEG is a standard for image compression that's brought us a world where colorful, high quality images can easily be shared. From web pages, to email, to social media and smartphones, it's used billions of times per day across all of our devices every time we view or send images online. Without JPEG, the web would be a little less colorful, a lot slower, and probably have a lot less cat pictures!
 
-In this article we're going to learn about JPEG by cracking open an image and playing with its raw bytes. Our goal is to understand what it takes to go from the JPEG image on your computer to what you see on the screen. It's worth learning about not just because it's important to understand the technology that we all use everyday, but as we unravel the layers of compression that make up a JPEG, we learn a little bit about ourselves, about what details our eyes are most sensitive to. Along the way we'll also encounter some very fascinating mathematics, like how to represent an image as a sum of waves, and why you'd ever want to do that!
+In this article we're going to learn about JPEG by cracking open an image and playing with its raw bytes. Our goal is to understand what it takes to go from the JPEG image stored on your computer to what you see on the screen. It's worth learning about not just because it's important to understand the technology that we all use everyday, but as we unravel the layers of compression that make up a JPEG, we learn a little bit about ourselves, about what details our eyes are most sensitive to. Along the way we'll also encounter some very fascinating mathematics, like how to represent an image as a sum of waves, and why you'd ever want to do that!
 
 It's also just a lot of fun to play with images this way:
 
@@ -32,9 +32,9 @@ What's most impressive about JPEG is how ubiquitous it is. We take it for grante
 
 Let's see what they came up with.
 
-## Peering Inside a JPEG
+## Part 0 - Peering Inside a JPEG
 
-Everything on a computer is stored as a series of binary numbers. We tend to group these 0's and 1's, the bits, into groups of 8, known as bytes. We want to see how these bytes can represent an image. 
+Everything on a computer is stored as a series of binary numbers. We tend to group these 0's and 1's, the bits, into groups of 8, known as bytes. When you open a JPEG image on your computer, someone has to decode the bytes (whether that's the browser, or your operating system etc) to recover the original image as a list of colors that can then be displayed.
 
 // Being able to see and manipulate them might give us some clues into how it works. This will also give us a way to verify that we've learned does indeed apply to a real image.
 
@@ -49,44 +49,90 @@ If you download and open this image using any [Reference content:"Here I'm using
 [img src:"static/images/blanket-cat-notepad.png"/]
 [br/]
 
-What we've done by opening an image in a text editor is confuse the computer in the same way you confuse your brain when you rub your eyes really hard!
+By opening an image in a text editor, we've confused the computer in the same way you confuse your brain when you rub your eyes really hard!
 
-[a href:"https://en.wikipedia.org/wiki/Phosphene"]Phosphenes[/a] is the phenomenon of seeing patterns of light that aren't there. It happens because your brain assumes that any electrical signal arriving through the nerves in your eye is conveying light information. It needs to make this assumption because there's no way to know whether a given signal is sound, sight, or something else. All the nerves in your body carry exactly the same type of electrical pulse. When you apply pressure by rubbing your eyes, you're sending non-visual signals that trigger the receptors in your eye, and your brain incorrectly interprets that as vision. 
+[a href:"https://en.wikipedia.org/wiki/Phosphene"]Phosphenes[/a] is the phenomenon of seeing patterns of light that aren't there. It happens because your brain assumes that any electrical signal arriving through the nerves in your eye is conveying light information. It needs to make this assumption because there's no way to know whether a given signal is sound, sight, or something else. All the nerves in your body carry exactly the same type of electrical pulse. When you apply pressure by rubbing your eyes, you're sending non-visual signals that trigger the receptors in your eye, and your brain incorrectly interprets that as vision.
 
 // It's a useful analogy not just because it's fun to think of ways computers are similar to our brains, but it also tells us that data, whether carried through our bodies in the nerves, or stored in our computers, has no intrinsic meaning. It's how you interpret it that gives it meaning.
 
-This is exactly what's happening here. Just like with the signals in your nerves, all binary data looks the same (it's all 0's and 1's) and could be conveying any kind of information. Your computer often guesses how to interpret it using clues like the file extension. Here it's being incorrectly interpreted as text.
+This is exactly what's happening here. Just like with the signals in your nerves, all binary data looks the same (it's all 0's and 1's) and could be conveying any kind of information. Your computer often guesses how to interpret it using clues like the file extension. Here we've forced it to interpret it as text because that's what a text editor expects.
 
 What we really want is to be able to see the original signals themselves, the binary data. We could do that with a [Reference content:"You don't necessarily _need_ a hex editor. You can edit the characters as text, save the file, and re-open it as an image just fine. Try removing the * in line 10 for example and see what happens. But since our goal is to understand how JPEG stores images, it's helpful to be able to actually read the bits!"]hex editor[/Reference]. Or we could do it right in this webpage!
 
-Below is the image next to all of its bytes interpreted as decimal numbers. You can make any changes to the bytes and it will recreate and display the image as you type.
+Below is the image next to all of its bytes represented as decimal numbers. You can make any changes to the bytes and it will re-decode and display the image as you type.
 
 [RawEditor ref:"initialRaw" fullWidth:true imageUrl:"static/images/blanket-cat.jpg" /]
 
-There's a lot we can learn just from playing around with this. For example, can you figure out the order the pixels are stored in? _Hint: try scrolling down and removing a few chunks. Don't worry, you can always reset the image back to the original!_
+There's a lot we can learn just from playing around with this. For example, can you figure out the order the pixels are stored in? 
 
-What's really strange here is that changing some numbers doesn't seem to impact the image at all, while [EditorLink editor:`refs.initialRaw` line:39 search:' 17 ' replace:' 0 ']setting the 17 to 0 on line 39[/EditorLink] completely ruins the image! Others like [EditorLink editor:`refs.initialRaw` line:2026 search:' 7 ' replace:' 254 ']setting the 7 to 254 on line 2026[/EditorLink] change the color but only for subsequent pixels.  
+_Hint: try scrolling down and removing a few chunks. Don't worry, you can always reset the image back to the original!_
+[br/]
+
+What's really strange here is that changing some numbers doesn't seem to impact the image at all, while [EditorLink editor:`refs.initialRaw` line:39 search:' 17 ' replace:' 0 ']setting the 17 on line 39 to 0[/EditorLink] completely ruins the image! Others like [EditorLink editor:`refs.initialRaw` line:2026 search:' 7 ' replace:' 254 ']setting the 7 on line 2026 to 254[/EditorLink] change the color but only for subsequent pixels.  
 
 Perhaps what's most peculiar of all is that some numbers change not just the color...but the shape as well? Change [EditorLink editor:`refs.initialRaw` line:50 search:' 70 ' replace:' 2 ']70 to 2 in line 50[/EditorLink] and look at the top row of the image to see what I mean. You'll always find these mysterious checkboard patterns regardless of what JPEG you're using.
 
-It's hard to see the relationship between any particular byte and the pixels in the image because JPEG compression is actually composed of 3 independent compression techniques, applied in successive layers. They are:
+It's hard to decipher what these bytes mean because JPEG compression is actually composed of 3 independent compression techniques, applied in successive layers. They are:
 
 1. Chrominance Subsampling
 2. Discrete Cosine Transform & Quantization
 3. Huffman, Run-Length & Delta Encoding
 
-// Before I explain each one, I'll give you a chance to figure it out yourself, using clues like knowing how small the JPEG version of the image is, or just by observing how te JPEG behaves when edited. Putting yourself in the shoes of the inventor like this is a great way not just to learn , but as we'll see, sometimes even invent something better! 
+We'll look at each of these layers of compression separately to unravel this mysterious behavior we're seeing.
 
-To solve these mysteries, we'll look at how each layer works individually. And just to appreciate the scale of compression here, notice that it takes 82,234 (compute this automatically?) numbers to represent this image, which makes it around ~80 kilobytes. If we tried to represent this using a naiive approach, that would be 3 numbers for each pixel, for a 700 by 437, that's 700 * 437 * 3 = 917,700. The JPEG image is over 10x smaller!
+// The first two are **lossy** techniques - they throw away information to make the file size smaller. We'll look at each one separately to see how it contributes to the total compression. 
 
-## Part 1: Chrominance Subsampling
+// Before I explain each one, I'll give you a chance to figure it out yourself, using clues like knowing how small the JPEG version of the image is, or just by observing how the JPEG behaves when edited. Putting yourself in the shoes of the inventor like this is a great way not just to learn , but as we'll see, sometimes even invent something better! 
 
-To reach our 10x target, knowing that we're allowed to toss things out, we can try to find things to remove. Removing a whole pixel doesn't work. 
+Just to give you an idea of the scale of this compression, JPEG uses exactly 79,819 numbers (TODO: Compute automatically?) to represent the image above, which makes it just about 79 kilobytes. If we just stored all the colors with no compression, we'd need 3 numbers for each pixel (for the red, green and blue components). The image's width and height are 700 and 437, so that makes a total of 700 x 437 x 3 = 917,700 numbers, or about 917 kilobytes. So the JPEG image is over 10x smaller!
 
-## Part 2: Discrete Cosine Transform & Quantization
+In fact we can squeeze it into just about ~16,000 numbers by cranking up the compression (that's 57x smaller than the uncompressed). This was re-exported with a quality of 20% from Gimp. At this point it's obvious we've lost some detail from the original image.
 
-## Part 3: Huffman, Run-Length & Delta Encoding
+[RawEditor ref:"initialRaw" fullWidth:true imageUrl:"static/images/blanket-cat-small.jpg" /]
 
+The changes here seem to be even more dramatic. My favorite is setting the[EditorLink editor:`refs.initialRaw` line:188 search:' 111 ' replace:' 0 ']111 on line 118 to 0[/EditorLink].
+
+## Part 1 - Chrominance Subsampling
+
+Here's a JPEG with only the first compression layer. This is just basically YCbCr blocks. We learn:
+
+* JPEG uses blocks
+* It uses a different color space 
+* Blah
+
+Here I ask the reader to think what information they can afford to throw away. The investigation invites us to think about color spaces. We look at what the image looks with R, G, and B downscaled. And then with Y, Cb, and Cr downscaled. 
+
+// TODO: Graph with slider to see what it looks like to downscale the other 2 components.
+// R   G    B
+// Y   Cb   Cr
+// ----|------
+
+The conclusion is YCbCr allows us to cut down the image size by X%.  
+
+## Part 2 - Discrete Cosine Transform & Quantization
+
+Here is the image with just the DCT blocks of the luminance component. We learn:
+
+* Where the patterns are coming from!
+
+Let's look at it done on the whole image. Remove some numbers from the end. Remove from the beginning. Can we look at just one or the other? 
+
+## Part 3 - Huffman, Run-Length & Delta Encoding
+
+This is a more general compression technique. This is also the hardest to decipher. This is why some things in the image are corrupted when changed. 
+
+It's hard to decipher for the same reason it'd be hard to decipher a language I jsut made up to describe a particular painting really well. This is exactly what this is!
+
+## Epilogue - Getting a Single Color Out of JPEG
+
+I promised we'll understand exactly how to decode a JPEG. Here, if you click on a pixel, it'll:
+
+* Tell you the Huffman value? Then decode it (can I create a map to get this? Would be hard otherwise given the variable length encoding)
+* Tell you the 64 coefficients in the MCU block 
+* Tell you the YCbCr value
+* Tell you the RGB value 
+
+I hope this makes you appreciate all the work that goes into it viewing even a simple cat picture!
 
 // - Add tabs to the editor
 // - Add filesize at the bottom
@@ -95,4 +141,5 @@ To reach our 10x target, knowing that we're allowed to toss things out, we can t
 // - Scrolling issue, when you scroll through the editor it scroll the page
 // - Make reset not change where you scroll
 // - Make editor link highlight what it changes? And clear highlight on reset or clicking another link
-// - Fix the flicker with "image corrupted when you click on link"
+
+// - (temporary fix right now) Fix the flicker with "image corrupted when you click on link"
