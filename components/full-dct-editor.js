@@ -7,7 +7,7 @@ class FullDctEditor extends D3Component {
 
     const ImageUtilities = require('./utils/ImageUtilities');
     node.className = 'image-editor-container';
-    console.log(props.imageUrl)
+
     let imageEditor = new ImageUtilities({
       url: props.imageUrl,
       corruptedImage: props.corruptedImage,

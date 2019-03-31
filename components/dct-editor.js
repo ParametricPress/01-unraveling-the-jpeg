@@ -7,21 +7,39 @@ class DctEditor extends D3Component {
 
     const ImageUtilities = require('./utils/ImageUtilities');
     node.className = 'image-editor-container';
-    console.log(props.imageUrl)
+    let editMode = 'dctLuminance';
+    let comp = props.comp;
+
+    if(comp == undefined) comp = 'Y';
+    if (props.comp == 'Cb') editMode = 'dctBlue';
+    if (props.comp == 'Cr') editMode = 'dctRed';
+
     let imageEditor = new ImageUtilities({
       url: props.imageUrl,
       corruptedImage: props.corruptedImage,
       highlightPixelOnClick: true,
-      editMode: 'dctLuminance'
+      editMode: editMode
     });
     imageEditor.readyPromise
       .then(function() {
         imageEditor.createImageEditor(node);
-        // Get the DCT coefficients out.
-        let dctCoefficients = imageEditor.getDctComponent('Y');
 
-        // Put each block in a line, since each block has 64 numbers.
-        imageEditor.putValuesInEditor(dctCoefficients, 64, true);
+        if (props.override != undefined) {
+          let values = [];
+          let lines = props.override.split("\n");
+          for (let line of lines) {
+            values = values.concat(line.trim().split(" "));
+          }
+          imageEditor.putValuesInEditor(values, 64, true);
+
+        } else {
+          // Get the DCT coefficients out.
+          let dctCoefficients = imageEditor.getDctComponent(comp);
+
+          // Put each block in a line, since each block has 64 numbers.
+          imageEditor.putValuesInEditor(dctCoefficients, 64, true);
+        }
+        
 
         setTimeout(() => imageEditor.editor.resize(), 1500)
       }).catch(e => {

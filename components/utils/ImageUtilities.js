@@ -14,6 +14,10 @@ function pad(array) {
 	return array;
 }
 
+function clampTo8bit(a) {
+	return a < 0 ? 0 : a > 255 ? 255 : a;
+}
+
 let corruptedCache = {};
 
 let componentMap = {
@@ -55,6 +59,8 @@ class ImageUtilities {
 		let that = this;
 		this.editMode = options.editMode;
 		this.corruptedImage = options.corruptedImage;
+		this.imageWidth = 0;
+		this.imageHeight = 0;
 		if (this.corruptedImage == undefined) {
 			this.corruptedImage = 'corrupted.png';
 		}
@@ -91,7 +97,9 @@ class ImageUtilities {
 					that.header = data.header;
 					that.totalBytes = that.header.concat(that.body);
 				} else {
-          that.decodedImage = jpeg.decode(buffer, { useTArray:true });
+					that.decodedImage = jpeg.decode(buffer, { useTArray:true });
+					that.imageWidth = that.decodedImage.width;
+					that.imageHeight = that.decodedImage.height;
 				}
 			})
 			.catch(function(error) {
@@ -105,6 +113,27 @@ class ImageUtilities {
 			let values  = this.getValuesFromEditor();
 			this.totalBytes = values;
 			this.drawRawBytes();
+		}
+
+		if (this.editMode == 'chroma') {
+			// Extract components, each (scale) numbers is Y, then Cb and Cr.
+			let scale = this.scale;
+			let values  = this.getValuesFromEditor();
+			let Y = [];
+			let Cb = [];
+			let Cr = [];
+			for (let i = 0; i < values.length; i+= scale + 2) {
+				for (let j = 0; j < scale; j++) {
+					Y.push(values[i + j]);
+					// To "scale up" the Cb and Cr, just duplicate them
+					Cb.push(values[i + scale]);
+					Cr.push(values[i + scale + 1]);
+				}
+			}
+
+			// Convert them to RGB
+			// draw using putImage since it's just a list of RGB
+			this.drawYCbCr(Y, Cb, Cr);
 		}
 
 		if (this.editMode == 'full-dctLuminance') {
@@ -153,10 +182,29 @@ class ImageUtilities {
 			this.drawDecodedImage();
 		}
 
-		if (this.editMode == 'dctBlue') {
+		if (this.editMode == 'justY' || this.editMode == 'justCb' || this.editMode == 'justCr') {
+			let components = ['Cb', 'Cr'];
+			if (this.editMode == 'justCb') components = ['Y', 'Cr'];
+			if (this.editMode == 'justCr') components = ['Y', 'Cb'];
+
+			for (let comp of components) {
+				let rawBlocks = this.decodedImage._decoder.frames[0].components[componentMap[comp] + 1].blocks;
+				for (let i = 0; i < rawBlocks.length; i++) {
+					for (let j = 0; j < rawBlocks[i].length; j++) {
+						rawBlocks[i][j] = 0;
+					}
+				}
+			}
+			
+			this.reEncodeImage();
+			this.drawDecodedImage();
+		}
+
+		if (this.editMode == 'dctBlue' || this.editMode == 'dctRed') {
 			let text = this.editor.getSession().getValue();
 			let editorBlocks = text.trim().split('\n');
-			let rawBlocks = this.decodedImage._decoder.frames[0].components[componentMap['Cb'] + 1].blocks;
+			let component = this.editMode == 'dctBlue' ? 'Cb' : 'Cr';
+			let rawBlocks = this.decodedImage._decoder.frames[0].components[componentMap[component] + 1].blocks;
 			let blocks = [];
 			for (let i = 0; i < rawBlocks.length; i++) {
 				for (let j = 0; j < rawBlocks[i].length; j++) {
@@ -181,6 +229,15 @@ class ImageUtilities {
 			this.reEncodeImage();
 			this.drawDecodedImage();
 		}
+
+		// Update byte counter
+		this.updateByteCounter();
+	}
+
+	updateByteCounter() {
+		let values  = this.getValuesFromEditor();
+		this.byteCounter.innerHTML = "Size: " + (values.length / 1000).toFixed(2) + " kb.";
+		this.byteCounter.innerHTML += " Dimensions: " + this.imageWidth + " x " + this.imageHeight;
 	}
 
 	reEncodeImage() {
@@ -201,6 +258,10 @@ class ImageUtilities {
 			height: decodedImage.height,
 			data: decodedImage.data
 		});
+
+		this.imageWidth = decodedImage.width;
+		this.imageHeight = decodedImage.height;
+		this.updateByteCounter();
 	}
 
 	getLineLength() {
@@ -247,20 +308,23 @@ class ImageUtilities {
 
 	createImageEditor(containerElement) {
 
-    let outerContainer = containerElement;
-    containerElement = document.createElement('div');
-    containerElement.className = 'image-editor';
-    outerContainer.appendChild(containerElement);
+	    let outerContainer = containerElement;
+	    containerElement = document.createElement('div');
+	    containerElement.className = 'image-editor';
+	    outerContainer.appendChild(containerElement);
 
 		// Create ace editor
 		let editorContainer = document.createElement('div');
 		editorContainer.className = 'byte-editor';
 
+		// Size counter
+		this.byteCounter = document.createElement('span');
+		this.byteCounter.innerHTML = "Size: 0 kb";
+
 		// Reset button
 		this.resetButton = document.createElement('button');
 		this.resetButton.innerHTML = 'Reset';
-    this.resetButton.editorInstance	= this;
-
+    	this.resetButton.editorInstance	= this;
 
 		let editorElement = document.createElement('div');
 		editorContainer.appendChild(editorElement);
@@ -297,11 +361,17 @@ class ImageUtilities {
 				
 				// Need to know which component, to get the scale.
 				let componentData = that.decodedImage._decoder.frames[0].components[componentMap['Y'] + 1];// Hardcoded to 'Y';
-				let scale = 1;
-				// TODO This breaks if canvas is scaled.
+				let scale = 1; // You can compute the scale for a component by doing
+				// scaleX: component.h / frame.maxH
+				// scaleY: component.v / frame.maxV
+				
 				// Then divide x and y by 8
 				x /= 8; y/= 8;
 				x /= scale; y/= scale;
+				let cssScaleX = canvas.width / canvas.offsetWidth;
+    			let cssScaleY = canvas.height / canvas.offsetHeight;
+    			x *= cssScaleX; 
+    			y *= cssScaleY;
 				
 				// Then the line no is x * blocksPerLine + y * blocksPerColumn
 				let lineNo = Math.floor(x) + Math.floor(y) * componentData.blocksPerLine;
@@ -312,7 +382,8 @@ class ImageUtilities {
 		// let clearDiv = document.createElement('div');
 		// clearDiv.style = 'clear:both;';
 		// containerElement.appendChild(clearDiv);
-    outerContainer.appendChild(this.resetButton);
+		outerContainer.appendChild(this.byteCounter);
+		outerContainer.appendChild(this.resetButton);
 	}
 
 	drawRawBytes() {
@@ -328,7 +399,12 @@ class ImageUtilities {
     	.then(function(imageBitmap) {
     		let canvas = that.canvas;
     		canvas.width = imageBitmap.width;
-    		canvas.height = imageBitmap.height;
+				canvas.height = imageBitmap.height;
+
+				that.imageWidth = imageBitmap.width;
+				that.imageHeight = imageBitmap.height;
+				that.updateByteCounter();
+
     		let ctx = canvas.getContext('2d');
     		ctx.drawImage(imageBitmap, 0, 0, imageBitmap.width, imageBitmap.height);
     	})
@@ -341,14 +417,55 @@ class ImageUtilities {
     	})
 	}
 
-	drawDecodedImage() {
+	drawDecodedImage(mode) {
 		let canvas = this.canvas;
 		let image = this.decodedImage;
 
 		canvas.width = image.width;
 		canvas.height = image.height;
+		this.imageWidth = image.width;
+		this.imageHeight = image.height;
+		this.updateByteCounter();
+
 		var ctx = canvas.getContext('2d');
 		var imageData = new ImageData(new Uint8ClampedArray(image.data), image.width, image.height);
+
+		if (mode != undefined) {
+			let indices = [1, 2];
+			if (mode == 'justG') {
+				indices = [0, 2];
+			} else if (mode == 'justB') {
+				indices = [0, 1];
+			}
+
+			for (let i = 0; i < image.data.length; i+= 4) {
+				for (let index of indices) image.data[i+index] = 0;
+			}
+			imageData = new ImageData(new Uint8ClampedArray(image.data), image.width, image.height);
+		}
+
+		ctx.putImageData(imageData, 0, 0);
+	}
+
+	drawYCbCr(Y, Cb, Cr) {
+		let width = this.imageWidth;
+		let height = this.imageHeight;
+		let pixels = new Uint8ClampedArray(width * height * 4);
+
+		for(let i = 0; i < Y.length; i++) {
+			let index = i * 4;
+			let rgb = this.ycbcrToRgb(Y[i], Cb[i], Cr[i]);
+			pixels[index] = rgb.R;
+			pixels[index + 1] = rgb.G;
+			pixels[index + 2] = rgb.B;
+			pixels[index + 3] = 255;
+		}
+
+		let canvas = this.canvas;
+		canvas.width = width;
+		canvas.height = height;
+		var ctx = canvas.getContext('2d');
+		var imageData = new ImageData(new Uint8ClampedArray(pixels), width, height);
 		ctx.putImageData(imageData, 0, 0);
 	}
 
@@ -357,6 +474,9 @@ class ImageUtilities {
 
 		canvas.width = width;
 		canvas.height = height;
+		this.imageWidth = canvas.width;
+		this.imageHeight = canvas.height;
+		this.updateByteCounter();
 		var ctx = canvas.getContext('2d');
 		var pixels = new Uint8ClampedArray(width * height * 4);
 
@@ -377,8 +497,11 @@ class ImageUtilities {
 
 	}
 
-	ycbcrToRgb(y, cb, cr) {
-
+	ycbcrToRgb(Y, Cb, Cr) {
+		let R = clampTo8bit(Y + 1.402 * (Cr - 128));
+		let G = clampTo8bit(Y - 0.3441363 * (Cb - 128) - 0.71413636 * (Cr - 128));
+		let B = clampTo8bit(Y + 1.772 * (Cb - 128));
+		return {R:R, G:G, B:B};
 	}
 
 	fill(array, value, start, end) {
@@ -394,10 +517,12 @@ class ImageUtilities {
 	}
 
 	getDecodedComponent(component) {
-    	let lines = this.decodedImage._decoder.components[componentMap[component]].lines;
+    let lines = this.decodedImage._decoder.components[componentMap[component]].lines;
 		let values = [];
 		for (let i = 0; i < lines.length; i++) {
+			if ( i >= this.decodedImage.height) break; // Account for byte stuffing?
 			for (let j = 0; j < lines[i].length; j++) {
+				if (j >= this.decodedImage.width) break;
 				values.push(lines[i][j])
 			}
 		}
