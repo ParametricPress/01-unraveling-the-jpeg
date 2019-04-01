@@ -126,19 +126,19 @@ So why not just use RGB? After all, that's how most modern screens work. Your mo
 [caption]Credit: http://www.chem.purdue.edu/jmol/cchem/RGBColors/body_rgbcolors.html [/caption]
 [br/]
 
-That's also very similar to how human eyes work. The color receptors in our eyes are called cones. They're split into 3 types that are most sensitive to red, green or blue. Rods are the other type of receptor we have in our eyes. They don't detect color, but they're far more sensitive, and we have about 120 million of them, compared to a measly 6 million cones.
+That's also very similar to how human eyes work. The color receptors in our eyes are called cones. They're split into 3 types that are most sensitive to red, green or blue. Rods are the other type of receptor that people have in their eyes. They don't detect color, but they're far more sensitive, and we each have about 120 million of them, compared to a measly 6 million cones.
 
-This means our eyes are a lot more sensitive to changes in brightness than they are to changes in color. If we can separate the color from the brightness, we can throw away a bit of the color without anyone noticing. This is exactly what JPEG does! To get the image to be 3x as small, we can store the Y component of each pixel, but only store the average Cb and Cr for each 4 pixels.
+This means our eyes are a lot more sensitive to changes in brightness than they are to changes in color. If the color can be separated from the brightness, a bit of the color can be thrown away without anyone noticing. This is exactly what JPEG does! To get the image to be 3x as small, the Y component of each pixel is stored, but only the average Cb and Cr for each 4 pixels are stored.
 
 That's why removing 1 number completely ruins the color. The components are stored as **Y Y Y Y Cb Cr**. Removing the first number would cause the Cb value to be interpreted as Y, the Cr as Cb, and create this rippling effect, flipping all the colors across the image.
 
-What if we had chosen to downsample a different component? Our eyes are not equally sensitive to all colors. Of the 6 millions cones, about 64% are most sensitive to red, 32% to green, and just 2% to blue. JPEG claims that this is the best way, but we can actually test this for ourselves.
+What if a different component had been downsampled? Our eyes are not equally sensitive to all colors. Of the 6 millions cones, about 64% are most sensitive to red, 32% to green, and just 2% to blue. JPEG claims that this is the best way, but let's test this for ourselves.
 
 [img src:"static/images/YCbCr.png"/]
 _TODO: Make this interactive. A slider will allow you to adjust the scaling factor. When at 100%, all images look identical, because all images will be using all the components. As you move the slider, we fix the one component, and scale down the other two. You'll see how the one that looks best by far is the bottom left, black and white one_.
 [br/]
 
-Downsampling the color gives us an easy way to get the image 3x smaller, but we've got a long way to go if we want to get to 57x smaller. Plus, this wouldn't give us any gain if the image was already black and white. There's got to be a lot more we can throw away.
+Downsampling the color gives us an easy way to get the image 3x smaller, but there is a long way to go to get to 57x smaller. Plus, this wouldn't give us any gain if the image was already black and white. There's got to be a lot more that can be throw away.
 
 ## Part 2 - Discrete Cosine Transform & Quantization
 
@@ -148,9 +148,9 @@ The second layer of compression is the most fascinating. It's largely the defini
 
 At first glance, this seems like very poor compression. There are 100,000 pixels in this image, and yet it takes 102,400 numbers to represent the luminance of each pixel using this layer of compression - that's worse than not compressing it at all!
 
-But notice that most of these values are 0. In fact, we can [EditorLink editor:`refs.DCT1` pattern:"remove-zeros"]get rid of all these zeros[/EditorLink] and we're now down to ~23,000 numbers, which makes it about 4x smaller!
+But notice that most of these values are 0. In fact, [EditorLink editor:`refs.DCT1` pattern:"remove-zeros"]all of these zeros can be removed[/EditorLink] and only ~23,000 numbers are left, which makes it about 4x smaller!
 
-In this layer lies the secret to the checkboard patterns. Unlike the other effects we've seen so far, the appearance of these patterns is not a glitch. They are in fact the building blocks of the entire image! Every line in the editor contains exactly 64 numbers, known as the Discrete Cosine Transform (DCT) coefficients, which correspond to intensities of 64 unique patterns.
+In this layer lies the secret to the checkboard patterns. Unlike the other effects so far, the appearance of these patterns is not a glitch. They are in fact the building blocks of the entire image! Every line in the editor contains exactly 64 numbers, known as the Discrete Cosine Transform (DCT) coefficients, which correspond to intensities of 64 unique patterns.
 
 You can see each of these patterns by zeroing out all but one of the numbers in any line. Here's an image that shows all of them individually.
 
@@ -223,21 +223,22 @@ These patterns are special because they form a basis for 8x8 images. If you're n
 
 If you're not convinced (I wasn't when I first heard this!) you can see this for yourself. Go back to the image at the start of this section. You can click on any pixel (the eyes are a good one to try) and it'll show you what line in the editor has its bytes. Start removing numbers from the end of the line and watch what happens to the shape of the pixels. Another way is to increase the values to make it more obvious which pattern it is and how they each contribute to the image you see.
 
-It might seem a little magical to be able to say that we can represent any image using 64 specific patterns. But this is the same thing as saying we only need two numbers to represent any location on the surface of the globe: longitude and latitude. The surface of the Earth is 2 dimensional, so we only need 2 numbers. An 8x8 image is 64 dimensional, so we need 64 numbers.
+It might seem a little magical to be able to say that any image can be represented using 64 specific patterns. But this is the same thing as saying only two numbers are needed to represent any location on the surface of the globe: longitude and latitude. The surface of the Earth is 2 dimensional, so two numbers are needed. An 8x8 image is 64 dimensional, so it requires 64 numbers.
 
-In terms of compression, it's not obvious how this helps us. If we need 64 numbers to represent an 8x8 image, why is this better than storing the 64 luminance components? For the same reason we converted from the 3 numbers of RGB to the 3 numbers of YCbCr: it allows us to remove detail that's less noticeable.
+In terms of compression, it's not obvious how this helps. If 64 numbers are needed to represent an 8x8 image, why is this better than storing the 64 luminance components? For the same reason converting from the 3 numbers of RGB to the 3 numbers of YCbCr helped: it enables the removal of details that are less noticeable.
 
-While JPEG only applies the Discrete Cosine Transform to blocks of 8x8 pixels at a time, but there's no reason we can't apply it to the whole image, which will make it easier to see. Here's what it looks like applied to the Y component of the entire image.
+While JPEG only applies the Discrete Cosine Transform to blocks of 8x8 pixels at a time, but there's no reason it can't be applied it to the whole image, which will make it easier to see. Here's what it looks like applied to the Y component of the entire image.
 
 [FullDctEditor ref:"DCT3" imageUrl:"static/images/blanket-cat-smallest.jpg"/]
 
-We can [EditorLink editor:`refs.DCT3` pattern:"remove-{170}"]remove over 60,000 numbers[/EditorLink] from the end with almost no noticable change. But notice that if we [EditorLink editor:`refs.DCT3` pattern:"zero-{5}"]zero out just the first 5 numbers[/EditorLink] (ignoring the first because it just makes the image darker) there's already an obvious change.
+Over [EditorLink editor:`refs.DCT3` pattern:"remove-{170}"]60,000 numbers can be removed[/EditorLink] from the end with almost no noticable change. But notice that if [EditorLink editor:`refs.DCT3` pattern:"zero-{5}"]just the first five numbers are zeroed out[/EditorLink] (ignoring the first because it just makes the image darker) there's already an obvious change.
 
 The patterns at the beginning represent the low frequency changes in the image, which our eyes are more sensitive to, while numbers towards the end represent the high frequency changes, which we're less sensitive to, so we don't notice when they're gone. I promised I'd show you what that looks like, so here's the image with the [EditorLink editor:`refs.DCT3` pattern:"zero-{5000}"]first 5000 numbers zeroed out[/EditorLink].
 
-What you're looking at here is all the areas of the image that have the greatest change from one pixel to the next. The cat's eyes, whiskers, fuzzy blanket and shadows on the bottom left all stand out. We can go even further, to [EditorLink editor:`refs.DCT3` pattern:"zero-{10000}"]zeroeing out the first 10,000[/EditorLink] numbers, to [EditorLink editor:`refs.DCT3` pattern:"zero-{20000}"]20,000[/EditorLink], to [EditorLink editor:`refs.DCT3` pattern:"zero-{40000}"]40,000[/EditorLink] and [EditorLink editor:`refs.DCT3` pattern:"zero-{60000}"]60,000[/EditorLink].
+What you're looking at here is all the areas of the image that have the greatest change from one pixel to the next. The cat's eyes, whiskers, fuzzy blanket and shadows on the bottom left all stand out. This can be taken even further, to [EditorLink editor:`refs.DCT3` pattern:"zero-{10000}"]zeroeing out the first 10,000[/EditorLink] numbers, to [EditorLink editor:`refs.DCT3` pattern:"zero-{20000}"]20,000[/EditorLink], to [EditorLink editor:`refs.DCT3` pattern:"zero-{40000}"]40,000[/EditorLink] and [EditorLink editor:`refs.DCT3` pattern:"zero-{60000}"]60,000[/EditorLink].
 
 What you're looking at is what JPEG removes during this compression step. The Discrete Cosine Transform itself is not lossy. It's the quantization of these numbers, where we remove the small values closer to the end, that's lossy. The lower the quality, the more numbers we remove, the greater the compression.
+// TODO - add a callback to the "amount of compression" referenced in the earlier section
 
 // TODO: Mention that quantization is to map these values back to the 0-255 range.
 // Hypothesis: images with text have lots of high frequency changes. We can prove this now! This makes sense because JPEG was made for images.
@@ -250,11 +251,9 @@ Just for fun, here's what it looks like [EditorLink editor:`refs.DCT3` pattern:"
 
 ## Part 3 - Huffman, Run-Length & Delta Encoding
 
-We've gotten ~3x compression from downsampling the color components, and ~4x compression from throwing away the high frequency data. We're right around 12x compression now.
+Downsampling the color components gives about 3 times compression, and throwing away high frequency data gives about 4 times compression. Together these two techniques give a 12x compression. To squeeze the bytes into an even smaller space, there's a few more tricks that can be applied. These aren't unique to JPEG, these are general data compression techniques. This layer is different from everything before in that it's lossless - no data is thrown away here.
 
-To squeeze the bytes into an even smaller space, there's a few more tricks we can apply. These aren't unique to JPEG, these are general data compression techniques. This layer is different from everything before in that it's lossless - no data is thrown away here.
-
-**Run-length encoding** takes repeated values and expresses them more concisely. For example, earlier we noticed there were a lot of 0's in the DCT coefficients. We were "throwing away" data by setting it to 0, but a 0 is still a number, and it takes just as much space as any other number. Since we know there's always going to be a long string of 0's at the end of each block, we can express it more efficiently by saying "we have 15 zeroes". We can communicate that using 2 numbers, instead of 15.
+**Run-length encoding** takes repeated values and expresses them more concisely. As shown earlier, there are a lot of 0's in the DCT coefficients. This data was "thrown away" by setting it to 0, but a 0 is still a number, and it takes just as much space as any other number. Since there's always going to be a long string of 0's at the end of each block, it can be expressed more efficiently by saying "there are 15 zeroes". This can be communicated using 2 numbers, instead of 15.
 
 **Delta encoding** is when you represent values relative to the previous value instead of as absolute values. Consider the list of numbers below.
 
@@ -262,13 +261,13 @@ To squeeze the bytes into an even smaller space, there's a few more tricks we ca
 12 13 14 16 17 18 19 20
 ```
 
-With delta-encoding, we'd start with 12, but then everything after would be how much you need to add to get the next number. So it would look like:
+Delta-encoding starts with 12, but then everything after would be how much you need to add to get the next number. So it would look like:
 
 ```
 12 1 1 2 1 1 1 1
 ```
 
-On its own, it's not helpful. But combined with run-length encoding, it can create runs of repeated values that can then be very efficiently stored. This is especially true for image data where we expect the colors not to change too much between each 8x8 block.
+On its own, it's not helpful. But combined with run-length encoding, it can create runs of repeated values that can then be very efficiently stored. This is especially true for image data where the colors aren't expected to change too much between each 8x8 block.
 
 The final step is **Huffman encoding**. This is the reason certain changes to individual bytes completely destroyed the whole image. Huffman encoding is what makes it impossible (or at least incredibly difficult) to decode an image without the header - the first ~200 bytes of any JPEG image that contain metadata like the width and height of the image. It's difficult for the same reason it would be incredibly difficult for you to understand a language I just made up to describe one particular painting. It would likely be very elegant and concise, but probably not very useful for anything other than describing that one, specific, painting.
 
@@ -293,21 +292,21 @@ These are 6 decimal numbers. In binary, these are stored as:
 00000001 00000001 00000001 11111111 00000001 00000001
 ```
 
-That's a total of 48 bits. We use 8 bits per number so that we can store numbers up to 255, but that means we're wasting 7 bits on almost all of our numbers here. Ideally, you'd store every number in as many bits it needs and no more. So it would be:
+That's a total of 48 bits. 8 bits are used per number so that numbers up to 255 can be stored, but that means 7 bits are wasted on almost all of the numbers here. Ideally, every number would be stored in as many bits it needs and no more. So it would be:
 
 ```
 1   1   1   11111111    1   1
 ```
 
-This is now only 13 bits. We've just made our data over 3x as small, just by removing unnecessary bits, with no change to the image quality!
+This is now only 13 bits. This made our data over 3x as small, just by removing unnecessary bits, with no change to the image quality!
 
-There's one problem though - I deliberately spaced out the numbers when showing it so you'd know where each one starts and ends. But when you're reading bits in a file, this is what you'd get:
+There's one problem though - I deliberately spaced out the numbers when showing it so you'd know where each one starts and ends. But if you were a computed reading the bits of a file, this is what you'd see:
 
 ```
 1111111111111
 ```
 
-These are the 13 bits. Is the first number a 1? Or is it a 11 (a 3 in decimal)? Or is it a 11111111? We need a way to somehow know how many bits to read for each number.
+These are the 13 bits. Is the first number a 1? Or is it a 11 (a 3 in decimal)? Or is it a 11111111? The needs to be a way to know how many bits to read for each number.
 
 This is a fun problem to try and solve with many creative solutions. For example, you could say you'll put a stop marker in there, maybe it's "0". But then you have to figure out a way to represent "0"! It's outside the scope of this article, but Huffman encoding is the answer. It is the most efficient way of packing a string of bits without using start/stop markers. There are many good explanations on it, one of my favorite is [a href:"https://www.youtube.com/watch?v=JsTptu56GM8"]Tom Scott's video[/a] on how it works for text compression.
 
