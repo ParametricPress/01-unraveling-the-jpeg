@@ -1,4 +1,4 @@
-[meta title:"Unraveling The JPEG" description:"Short description of your project" /]
+[meta title:"Unraveling The JPEG" description:"JPEG images are everywhere, yet how they work remains a mystery to most. The secret is getting rid of almost unnoticeable details to get the smallest filesize - but what does that look like? Let's see what our eyes can't see." /]
 
 [Nav fullWidth:true /]
 
@@ -6,7 +6,7 @@
   title:`["Unraveling", "The JPEG"]`
   longTitle:`["Unraveling", "The JPEG"]`
   date:"April 15, 2019"
-  dek:"JPEG images are everywhere, yet how they work remains a mystery to most. The secret is getting rid of almost unnoticeable details to get the smallest filesize - but what does that look like? Let's see what our eyes can't see!"
+  dek:"JPEG images are everywhere, yet how they work remains a mystery to most. The secret is getting rid of almost unnoticeable details to get the smallest filesize - but what does that look like? Let's see what our eyes can't see."
   fullWidth:true
   authors:`[{
     name: "Omar Shehata",
@@ -60,9 +60,7 @@ By opening an image in a text editor, we've confused the computer in the same wa
 
 This is a useful analogy not just because it's fun to think of ways computers are similar to our brains, but it also illustrates how data, whether carried through a body by nerves, or stored in a computer, has no intrinsic meaning. It's how you interpret it that gives it meaning. This is exactly what's happening here. Just like with the signals in your nerves, all binary data looks the same (it's all 0's and 1's) and could be conveying any kind of information. Your computer often guesses how to interpret it using clues like the file extension. Here we've forced it to interpret it as text because that's what a text editor expects.
 
-The goal is to be able to see the original signals themselves, the binary data. That could be done with a [Reference content:"You don't necessarily _need_ a hex editor. You can edit the characters as text, save the file, and re-open it as an image just fine. Try removing the * in line 10 for example and see what happens. But since our goal is to understand how JPEG stores images, it's helpful to be able to actually read the bits!"]hex editor[/Reference]. Or it could be done right in this webpage!
-
-Below is the image next to all of its bytes, represented as decimal numbers. You can make changes to the bytes and it will re-decode and display the image as you type.
+The goal is to be able to see the original signals themselves, the binary data. That could be done with a [Reference content:"You don't necessarily _need_ a hex editor. You can edit the characters as text, save the file, and re-open it as an image just fine. Try removing the * in line 10 for example and see what happens. But since our goal is to understand how JPEG stores images, it's helpful to be able to actually read the bits!"]hex editor[/Reference]. Or it could be done right in this webpage. Below is the image next to all of its bytes, represented as decimal numbers. You can make changes to the bytes and it will re-decode and display the image as you type.
 
 [RawEditor ref:"Raw1" fullWidth:true imageUrl:"static/images/blanket-cat.jpg" /]
 
@@ -101,8 +99,10 @@ In fact that image can be made even smaller. It can be squeezed into just 16 kil
 // TODO - say something about what it means to turn up compression?
 
 [RawEditor ref:"Raw2" fullWidth:true imageUrl:"static/images/blanket-cat-small.jpg" /]
+// TODO - i think just show an image here, no editor, and let people focus on comparing the compression differences. maybe even show the two side-by-side?
 
 The checkboard patterns are even more obvious now when we change the [EditorLink editor:`refs.Raw2` line:188 search:' 111 ' replace:' 0 ']111 on line 118 to 0[/EditorLink].
+// TODO - this sentence doesn't make sense anymore because we haven't introduced the checkerboard patterns.
 
 ## Part 1 - Chrominance Subsampling
 
@@ -110,23 +110,23 @@ Here's the same image with just the first layer of compression applied.
 
 [ChromaEditor ref:"Chroma1" imageUrl:"static/images/blanket-cat-smallest.jpg" /]
 
-It's a lot more straightforward to decipher now. It's almost a simple list of colors, where each byte changes exactly one pixel, and yet it's already ~3x smaller than the uncompressed size. Can you guess why?
+It's a little more straightforward to decipher now. It's almost a simple list of colors, where each byte changes exactly one pixel, and yet it's already ~3x smaller than the uncompressed size. Can you guess why?
 
 _Hint: Notice that removing one number ruins all the colors. But removing exactly 6, or any multiple of 6, has a minimal effect on the image._
 [br/]
 
-Here's another hint: If we [EditorLink editor:`refs.Chroma1` pattern:'zero-all']replace all the numbers with 0[/EditorLink] we see green, not black, as you'd expect if these bytes represented red, green and blue components.
+Here's another hint: If the numbers [EditorLink editor:`refs.Chroma1` pattern:'zero-all']are all replaced with 0[/EditorLink], the image turns green, not black, as you might expect if those bytes represented red, green and blue components.
 
-This is because these bytes represent the [EditorLink editor:`refs.Chroma1` pattern:'isolate-Y' scale:4]Y[/EditorLink] (brightness), [EditorLink editor:`refs.Chroma1` pattern:'isolate-Cb' scale:4]Cb[/EditorLink] (blueness), and [EditorLink editor:`refs.Chroma1` pattern:'isolate-Cr' scale:4]Cr[/EditorLink] (redness) of the image.
+This is because the bytes represent the [EditorLink editor:`refs.Chroma1` pattern:'isolate-Y' scale:4]Y[/EditorLink] (brightness), [EditorLink editor:`refs.Chroma1` pattern:'isolate-Cb' scale:4]Cb[/EditorLink] (blueness), and [EditorLink editor:`refs.Chroma1` pattern:'isolate-Cr' scale:4]Cr[/EditorLink] (redness) of the image.
 
-Why not just use RGB? After all, that's how most modern screens work. Your monitor can display any color by turning on red, green and blue lights at various intensities for each pixel. The color white is displayed by turning on all 3 colors at full brightness, while black is displayed by turning them all off.
+So why not just use RGB? After all, that's how most modern screens work. Your monitor can display any color by turning on red, green and blue lights at various intensities for each pixel. The color white is displayed by turning on all 3 colors at full brightness, while black is displayed by turning them all off.
 
+[br/]
 [img src:"static/images/BlackWhiteGray_Purdue.gif"/]
-_Stolen from: http://www.chem.purdue.edu/jmol/cchem/RGBColors/body_rgbcolors.html
-[br/]
+[caption]Credit: http://www.chem.purdue.edu/jmol/cchem/RGBColors/body_rgbcolors.html [/caption]
 [br/]
 
-That's also very similar to how our eyes work. The color receptors in our eyes are called cones. They're split into 3 types that are most sensitive to red, green or blue. Rods are the other type of receptor we have in our eyes. They don't detect color, but they're far more sensitive, and we have about 120 million of them, compared to a measly 6 million cones.
+That's also very similar to how human eyes work. The color receptors in our eyes are called cones. They're split into 3 types that are most sensitive to red, green or blue. Rods are the other type of receptor we have in our eyes. They don't detect color, but they're far more sensitive, and we have about 120 million of them, compared to a measly 6 million cones.
 
 This means our eyes are a lot more sensitive to changes in brightness than they are to changes in color. If we can separate the color from the brightness, we can throw away a bit of the color without anyone noticing. This is exactly what JPEG does! To get the image to be 3x as small, we can store the Y component of each pixel, but only store the average Cb and Cr for each 4 pixels.
 

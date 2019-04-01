@@ -59,6 +59,12 @@ button {
   cursor: pointer;
 }
 
+.parametric-caption {
+  font-family: 'Graphik Web';
+  font-size: 14px;
+
+}
+
 @media all and (max-width: 1000px) {
   .idyll-root {
     max-width: none;
