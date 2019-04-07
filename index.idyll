@@ -6,7 +6,7 @@
   title:`["Unraveling", "The JPEG"]`
   longTitle:`["Unraveling", "The JPEG"]`
   date:"April 15, 2019"
-  dek:"JPEG images are everywhere, yet how they work remains a mystery to most. The secret is getting rid of almost unnoticeable details to get the smallest filesize - but what does that look like? Let's see what our eyes can't see."
+  dek:"JPEG images are everywhere, but how do they work? The secret is getting rid of almost unnoticeable details to get the smallest filesize — what does that look like? Let's see what our eyes can't see."
   fullWidth:true
   authors:`[{
     name: "Omar Shehata",
@@ -17,32 +17,20 @@
   source:""
 /]
 
-// IDEA for the header: It should be a pre-computed image at various stages of % of cosine waves, and either as you scroll down, or as you hover, it goes from 100% to 0.0001%. It would look super cool!
+It's easy to take it for granted that you can send a picture to a friend without worrying about what device, browser, or operating system they’re using, but things weren’t always this way. By the early 1980's, computers could store and display digital images, but there were many different ideas about how best to do that, so you couldn't just send an image from one computer to another and expect it to work. To solve this problem, the Joint Photographic Experts Group (JPEG), a committee of experts from all over the world, was established in 1986 as a joint effort by the ISO and the IEC — two international standards organizations headquartered in Geneva, Switzerland.
 
+JPEG, the group of people, created JPEG, a standard for digital image compression in 1992. Anyone who's ever used the internet has probably seen a JPEG-encoded image. It is by far the most ubiquitous way of encoding, sending and storing images. From web pages to email to social media, JPEGs are used billions of times a day — almost every time images are viewed or sent online. Without JPEG, the web would be a little less colorful, a lot slower, and probably have far fewer cat pictures!
 
-What's most impressive about JPEG is how ubiquitous it is. It is taken for granted that you can send a picture to a friend without worrying about what device, browser, or operating system they're using. It wasn't always this way, and this was exactly the reason the Joint Photographic Experts Group (JPEG) was established in 1986. Their goal was to create a way of sending and storing images that we can all agree on. It had to be both efficient and easy enough to implement to be widely supported.
+This article is about how to decode a JPEG image. Or in other words, it's about what it takes to convert the data stored on your computer to the image that appears on the screen. It's worth learning about not just because it's important to understand the technology we all use everyday, but as we unravel the layers of compression, we learn a bit about ourselves, and about what details our eyes are most sensitive to.
 
-Since you've used the internet, you've probably seen a JPEG image. JPEG is a standard for digital image compression that's enabled a world where colorful, high quality images can easily be shared. From web pages, to email, to social media, JPEG images are used billions of times per day -- almost every time images are viewed or sent online. Without JPEG, the web would be a little less colorful, a lot slower, and have far fewer cat pictures.
-
-This article will cover the JPEG by cracking open an image and letting you play with its raw bytes. The goal is to show what it takes to go from the ones and zeros stored on your computer to the images that appeare on your screen. The technology is worth learning about not just because it's used across the globe everyday: as the layers of compressions are unraveled, you'll learn a little bit about yourself, and about what details your eyes are most sensitive to.
-// Along the way we'll also encounter some very fascinating mathematics, like how to represent an image as a sum of waves, and why you'd ever want to do that!
-
-It's also just a lot of fun to play with images this way:
+It's also just a lot of fun to play with images this way.
 
 [img src:"static/images/glitchy-cat.gif"/]
 [br/]
 
-// What's most impressive about JPEG is how ubiquitous it is. It is taken for granted that you can send a picture to a friend without worrying about what device, browser, or operating system they're using. It wasn't always this way, and this was exactly the reason the Joint Photographic Experts Group (JPEG) was established in 1986. Their goal was to create a way of sending and storing images that we can all agree on. It had to be both efficient and easy enough to implement to be widely supported.
-
-// Let's see what they came up with.
-
 ## Peering Inside a JPEG
 
 Everything on a computer is stored as a series of binary numbers. Typically these bits, the 0's and 1's, are arranged in groups of 8, known as bytes. When you open a JPEG image on your computer, something has to decode the bytes (the browser, your operating system or something else) to recover the original image as a list of colors that can then be displayed.
-
-// Being able to see and manipulate them might give us some clues into how it works. This will also give us a way to verify that we've learned does indeed apply to a real image.
-
-// Here's the JPEG from before:
 
 Take a typical JPEG image as you might encounter on the internet:
 
@@ -143,6 +131,8 @@ Downsampling the color gives us an easy way to get the image 3x smaller, but the
 ## Part 2 - Discrete Cosine Transform & Quantization
 
 The second layer of compression is the most fascinating. It's largely the defining feature of JPEG. After the colors are converted to YCbCr, the components are compressed individually. Here's what the bytes for the Y component look like with this layer applied.
+
+// TODO: You can actually use this to progressively stream an image! But JPEG already thought of this, and you needed a patent. WE can actually see a gif of this though
 
 [DctEditor ref:"DCT1" comp:"Y" imageUrl:"static/images/blanket-cat-smallest.jpg" /]
 
