@@ -7,9 +7,10 @@ class RawEditor extends D3Component {
 
     node.className = 'image-editor-container';
     const ImageUtilities = require('./utils/ImageUtilities');
-    console.log(props.imageUrl)
+
     let imageEditor = new ImageUtilities({
       url: props.imageUrl,
+      showHeader: props.showHeader,
       corruptedImage: props.corruptedImage,
       editMode: 'raw'
     });
@@ -21,7 +22,13 @@ class RawEditor extends D3Component {
         let header = imageEditor.header;
         let total = header.concat(body);
         // Put it in, split by each 16 numbers
-        imageEditor.putValuesInEditor(total, 16, true);
+        console.log("SHOW HEADER", imageEditor.showHeader);
+        if (imageEditor.showHeader) {
+          imageEditor.putValuesInEditor(total, 16, true);
+        } else {
+          imageEditor.putValuesInEditor(body, 16, true);
+        }
+        
 
         setTimeout(() => imageEditor.editor.resize(), 1500)
       }).catch(e => {

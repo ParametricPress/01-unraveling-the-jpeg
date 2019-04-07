@@ -61,6 +61,11 @@ class ImageUtilities {
 		this.corruptedImage = options.corruptedImage;
 		this.imageWidth = 0;
 		this.imageHeight = 0;
+		this.showHeader = options.showHeader;
+		if (this.showHeader == undefined) {
+			this.showHeader = true;
+		}
+
 		if (this.corruptedImage == undefined) {
 			this.corruptedImage = 'corrupted.png';
 		}
@@ -95,7 +100,12 @@ class ImageUtilities {
 					let data = getHeaderAndBody(buffer);
 					that.body = data.body;
 					that.header = data.header;
-					that.totalBytes = that.header.concat(that.body);
+					if (that.showHeader) {
+						that.totalBytes = that.header.concat(that.body);
+					} else {
+						that.totalBytes = that.body;
+					}
+					
 				} else {
 					that.decodedImage = jpeg.decode(buffer, { useTArray:true });
 					that.imageWidth = that.decodedImage.width;
@@ -112,6 +122,9 @@ class ImageUtilities {
 			// Update the body, since it's the only thing in the editor right now
 			let values  = this.getValuesFromEditor();
 			this.totalBytes = values;
+			if (!this.showHeader) {
+				this.totalBytes = this.header.concat(values);
+			}
 			this.drawRawBytes();
 		}
 
@@ -390,6 +403,7 @@ class ImageUtilities {
 			const byteArray = new Uint8Array(this.totalBytes);
 			// For some reason, when you hit reset or click a link, it triggers twice, and totalBytes is 1?
 			if (this.totalBytes.length == 1) return;
+			console.log(this.totalBytes);
 			// Take the header and body bytes and draw them.
 			//const byteArray = new Uint8Array((this.header + ',' + this.body).split(',').map(parseFloat));
     	let blob = new Blob([byteArray.buffer], {type: 'image/jpeg'});
