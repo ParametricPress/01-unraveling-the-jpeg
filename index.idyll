@@ -27,7 +27,12 @@ This article is about how to decode a JPEG image. Or in other words, it's about 
 
 It's also just a lot of fun to play with images this way.
 
-[img src:"static/images/glitchy-cat.gif"/]
+[br/]
+
+[FullWidth]
+[img style:`{width: '100%'}` src:"static/images/glitchy-cat.gif"/]
+[/FullWidth]
+
 [br/]
 
 ## Peering Inside a JPEG
@@ -36,7 +41,12 @@ Everything on a computer is stored as a series of binary numbers. Typically, the
 
 Take a typical JPEG image you might encounter on the internet:
 
+[br/]
+
+// [FullWidth]
 [img src:"static/images/blanket-cat.jpg"/]
+// [/FullWidth]
+
 [br/]
 
 If you download and open this image using any [Reference content:"Here I'm using <a href='https://notepad-plus-plus.org/'>Notepad++</a> to edit the file, since common text editors like Windows' Notepad will change the file's binary contents when you save it so it's no longer a valid JPEG."]text editor[/Reference], you'll see a bunch of garbled characters.
@@ -44,9 +54,9 @@ If you download and open this image using any [Reference content:"Here I'm using
 [img src:"static/images/blanket-cat-notepad.png"/]
 [br/]
 
-By opening an image in a text editor, you’ve confused the computer, much in the same way you might confuse your brain when you rub your eyes too hard and start to see blotches of dimness and color. 
+By opening an image in a text editor, you’ve confused the computer, much in the same way you might confuse your brain when you rub your eyes too hard and start to see blotches of dimness and color.
 
-These blotches you see — known as [a href:"https://en.wikipedia.org/wiki/Phosphene"]“phosphenes”[/a] — don't come from any light stimulus, nor are they hallucinations made up in your mind. They arise because your brain assumes that any electrical signal arriving through the nerves in your eye is conveying light information. The brain needs to make this assumption because there’s no way to know whether a given signal is sound, sight, or something else. All the nerves in your body carry exactly the same type of electrical pulse. When you apply pressure by rubbing your eyes, you’re sending non-visual signals that trigger the receptors in your eye, which your brain interprets — incorrectly, in this case — as vision. 
+These blotches you see — known as [a href:"https://en.wikipedia.org/wiki/Phosphene"]“phosphenes”[/a] — don't come from any light stimulus, nor are they hallucinations made up in your mind. They arise because your brain assumes that any electrical signal arriving through the nerves in your eye is conveying light information. The brain needs to make this assumption because there’s no way to know whether a given signal is sound, sight, or something else. All the nerves in your body carry exactly the same type of electrical pulse. When you apply pressure by rubbing your eyes, you’re sending non-visual signals that trigger the receptors in your eye, which your brain interprets — incorrectly, in this case — as vision.
 
 It’s fun to think about how similar computers are to our brains, but this is also a useful analogy because it illustrates how much the meaning of data — whether carried through a body by nerves, or stored in a computer — relies on how you interpret it. All binary data is made up of ones and zeroes, basic components that could be conveying any kind of information. Your computer often guesses how to interpret it using clues, like the file extension. Here we’ve forced it to interpret it as text, because that’s what a text editor expects.
 
@@ -66,14 +76,17 @@ Something strange in the example above is that changing some numbers doesn't see
 
 Perhaps what's most peculiar is that some numbers change not just the color but the shape of the image as well. Change the [EditorLink editor:`refs.Raw1` line:12 search:' 70 ' replace:' 2 ']70 in line 12 to 2[/EditorLink] and look at the top row of the image to see what I mean. You'll always find these mysterious checkboard patterns lurking regardless of what JPEG you're using.
 
-[aside]
+
+It's hard to decipher the relationship between the bytes and the image by playing around like this, because JPEG compression is actually composed of 3 different compression techniques, which are applied in successive layers. We'll look at each of these layers of compression separately to unravel this mysterious behavior we're seeing.
+
+// [aside]
+[div style:`{margin: '2em 1em'}`]
 ### The three layers of JPEG compression
 1. Chrominance Subsampling
 2. Discrete Cosine Transform & Quantization
 3. Huffman, Run-Length & Delta Encoding
-[/aside]
-
-It's hard to decipher the relationship between the bytes and the image by playing around like this, because JPEG compression is actually composed of 3 different compression techniques, which are applied in successive layers. We'll look at each of these layers of compression separately to unravel this mysterious behavior we're seeing.
+[/div]
+// [/aside]
 
 To give you an idea of the scale of this compression, notice that the image above is represented using exactly 79,819 numbers,
 // (TODO: Compute automatically?)
