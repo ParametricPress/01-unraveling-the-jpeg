@@ -6,6 +6,10 @@
   border: 1px solid black;
 }
 
+.image-editor-container {
+  font-family: 'Graphik Web';
+}
+
 .image-editor {
   display: flex;
 }
@@ -45,24 +49,6 @@ color: #4801FF;
   cursor:pointer;
   color: #4801FF;
   text-decoration: underline;
-}
-
-button {
-  background: #4801FF;
-  font-family: Silkscreen;
-  border: none;
-  box-shadow: none;
-  border-radius: 0px;
-  color: white;
-  font-size: 14px;
-  padding: 1em 2em;
-  cursor: pointer;
-}
-
-.parametric-caption {
-  font-family: 'Graphik Web';
-  font-size: 14px;
-
 }
 
 @media all and (max-width: 1000px) {

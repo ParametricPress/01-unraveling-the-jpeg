@@ -3,7 +3,22 @@ var ace = require('brace');
 var {fastDctLee} = require('./FastDct');
 require('brace/mode/assembly_x86');
 require('brace/theme/monokai');
-require('brace/ext/searchbox'); 
+require('brace/ext/searchbox');
+
+
+// Polyfill for browsers besides chrome and firefox,
+// taken from https://dev.to/nektro/createimagebitmap-polyfill-for-safari-and-edge-228
+if (typeof window !== 'undefined' && !('createImageBitmap' in window)) {
+	window.createImageBitmap = async function(blob) {
+			return new Promise((resolve,reject) => {
+					let img = document.createElement('img');
+					img.addEventListener('load', function() {
+							resolve(this);
+					});
+					img.src = URL.createObjectURL(blob);
+			});
+	}
+}
 
 function pad(array) {
 	// Pad an array with 0's to reach a power of 2 length.
@@ -78,7 +93,7 @@ class ImageUtilities {
 				return response.blob();
 			})
 			.then(function(blob) {
-				return createImageBitmap(blob); 
+				return createImageBitmap(blob);
 			})
 			.then(function(imageBitmap) {
 				corruptedCache[that.corruptedImage] = imageBitmap;
@@ -105,7 +120,7 @@ class ImageUtilities {
 					} else {
 						that.totalBytes = that.body;
 					}
-					
+
 				} else {
 					that.decodedImage = jpeg.decode(buffer, { useTArray:true });
 					that.imageWidth = that.decodedImage.width;
@@ -208,7 +223,7 @@ class ImageUtilities {
 					}
 				}
 			}
-			
+
 			this.reEncodeImage();
 			this.drawDecodedImage();
 		}
@@ -371,21 +386,21 @@ class ImageUtilities {
 				var rect = event.target.getBoundingClientRect();
 				var x = event.clientX - rect.left; //x position within the element.
 				var y = event.clientY - rect.top;  //y position within the element.
-				
+
 				// Need to know which component, to get the scale.
 				let componentData = that.decodedImage._decoder.frames[0].components[componentMap['Y'] + 1];// Hardcoded to 'Y';
 				let scale = 1; // You can compute the scale for a component by doing
 				// scaleX: component.h / frame.maxH
 				// scaleY: component.v / frame.maxV
-				
+
 				// Then divide x and y by 8
 				x /= 8; y/= 8;
 				x /= scale; y/= scale;
 				let cssScaleX = canvas.width / canvas.offsetWidth;
     			let cssScaleY = canvas.height / canvas.offsetHeight;
-    			x *= cssScaleX; 
+    			x *= cssScaleX;
     			y *= cssScaleY;
-				
+
 				// Then the line no is x * blocksPerLine + y * blocksPerColumn
 				let lineNo = Math.floor(x) + Math.floor(y) * componentData.blocksPerLine;
 				event.target.editor.scrollToLine(lineNo);
