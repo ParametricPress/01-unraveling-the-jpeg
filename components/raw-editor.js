@@ -22,7 +22,6 @@ class RawEditor extends D3Component {
         let header = imageEditor.header;
         let total = header.concat(body);
         // Put it in, split by each 16 numbers
-        console.log("SHOW HEADER", imageEditor.showHeader);
         if (imageEditor.showHeader) {
           imageEditor.putValuesInEditor(total, 16, true);
         } else {

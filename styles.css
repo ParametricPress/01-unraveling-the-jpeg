@@ -83,3 +83,28 @@ button {
     flex-direction: column;
   }
 }
+
+.row {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+  flex-basis: 100%;
+  flex: 1;
+}
+
+.subsample-image {
+  text-align: center;
+}
+.subsample-image p {
+  margin-top:0px;
+}
+
+.subsample-image canvas {
+  width: 200px;
+}

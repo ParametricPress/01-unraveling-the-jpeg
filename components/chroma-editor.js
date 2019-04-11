@@ -7,17 +7,14 @@ class ChromaEditor extends D3Component {
 
     const ImageUtilities = require('./utils/ImageUtilities');
     node.className = 'image-editor-container';
-    console.log(props.imageUrl)
     let imageEditor = new ImageUtilities({
       url: props.imageUrl,
       corruptedImage: props.corruptedImage,
-      highlightPixelOnClick: true,
       editMode: 'chroma'
     });
     imageEditor.readyPromise
       .then(function() {
         imageEditor.createImageEditor(node);
-        console.log(imageEditor);
 
         // This assumes Y has a scale 1, and Cb and Cr have the same scale.
         // Interleave the colors based on the h and v of each component
