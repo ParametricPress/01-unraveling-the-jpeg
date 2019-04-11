@@ -18,9 +18,10 @@
     "d3": "^4.0.0",
     "idyll": "^4.0.7",
     "idyll-d3-component": "^2.0.0",
+    "idyll-document": "^3.0.6",
     "jpeg-js": "github:OmarShehata/jpeg-js",
-    "parametric-components": "^1.0.6",
-    "parametric-styles": "^1.0.4",
+    "parametric-components": "^1.0.12",
+    "parametric-styles": "^1.0.11",
     "react-image": "^2.0.0"
   },
   "devDependencies": {

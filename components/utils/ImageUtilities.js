@@ -3,7 +3,22 @@ var ace = require('brace');
 var {fastDctLee} = require('./FastDct');
 require('brace/mode/assembly_x86');
 require('brace/theme/monokai');
-require('brace/ext/searchbox'); 
+require('brace/ext/searchbox');
+
+
+// Polyfill for browsers besides chrome and firefox,
+// taken from https://dev.to/nektro/createimagebitmap-polyfill-for-safari-and-edge-228
+if (typeof window !== 'undefined' && !('createImageBitmap' in window)) {
+	window.createImageBitmap = async function(blob) {
+			return new Promise((resolve,reject) => {
+					let img = document.createElement('img');
+					img.addEventListener('load', function() {
+							resolve(this);
+					});
+					img.src = URL.createObjectURL(blob);
+			});
+	}
+}
 
 function pad(array) {
 	// Pad an array with 0's to reach a power of 2 length.
@@ -12,6 +27,35 @@ function pad(array) {
 		array.push(0);
 	}
 	return array;
+}
+
+// Extracts the R, G, or B component from image data.
+function extractComponentFromPixelData(pixelData, componentName) {
+	let index = 0;
+	if (componentName == 'G') index = 1;
+	if (componentName == 'B') index = 2;
+
+	let values = [];
+
+	for (let i = 0; i < pixelData.length; i+= 4) {
+		values.push(pixelData[i + index]);
+	}
+
+	return values;
+}
+
+// Fills the given image data's component with new values
+function fillPixelData(pixelData, componentName, values) {
+	let index = 0;
+	if (componentName == 'G') index = 1;
+	if (componentName == 'B') index = 2;
+
+	let count = 0;
+
+	for (let i = 0; i < pixelData.length; i+= 4) {
+		pixelData[i + index] = values[count];
+		count ++;
+	}
 }
 
 function clampTo8bit(a) {
@@ -24,6 +68,46 @@ let componentMap = {
 	'Y' : 0,
 	'Cb' : 1,
 	'Cr' : 2
+}
+
+function subsampleComponent(component, scale, width, height) {
+	let biggerDimension = width > height ? width : height; 
+	if (scale > biggerDimension) scale = biggerDimension;
+
+	for (let y = 0; y < height; y+= scale) {
+		for (let x = 0; x < width; x+= scale) {
+			// Compute the average of this block of pixels 
+			let sum = 0;
+			let count = 0;
+			for (let y_inner = 0; y_inner < scale; y_inner ++) {
+				for (let x_inner = 0; x_inner < scale; x_inner++) {
+					let finalX = x + x_inner;
+					let finalY = y + y_inner;
+
+					if (finalX > width - 1) finalX = width - 1;
+					if (finalY > height - 1) finalY = height - 1;
+
+					sum += component[0 | (finalY * width + finalX)];
+					count ++;
+				}
+			}
+			// Set all the pixels to this average
+			let avg = sum / count;
+			for (let y_inner = 0; y_inner < scale; y_inner ++) {
+				for (let x_inner = 0; x_inner < scale; x_inner++) {
+					let finalX = x + x_inner;
+					let finalY = y + y_inner;
+
+					if (finalX > width - 1) finalX = width - 1;
+					if (finalY > height - 1) finalY = height - 1;
+
+					component[0 | (finalY * width + finalX)] = avg;
+				}
+			}
+		}
+	}
+
+	return component;
 }
 
 function getHeaderAndBody(buffer) {
@@ -62,6 +146,9 @@ class ImageUtilities {
 		this.imageWidth = 0;
 		this.imageHeight = 0;
 		this.showHeader = options.showHeader;
+
+		this.savedComponents = {};
+
 		if (this.showHeader == undefined) {
 			this.showHeader = true;
 		}
@@ -78,7 +165,7 @@ class ImageUtilities {
 				return response.blob();
 			})
 			.then(function(blob) {
-				return createImageBitmap(blob); 
+				return createImageBitmap(blob);
 			})
 			.then(function(imageBitmap) {
 				corruptedCache[that.corruptedImage] = imageBitmap;
@@ -105,7 +192,7 @@ class ImageUtilities {
 					} else {
 						that.totalBytes = that.body;
 					}
-					
+
 				} else {
 					that.decodedImage = jpeg.decode(buffer, { useTArray:true });
 					that.imageWidth = that.decodedImage.width;
@@ -115,6 +202,66 @@ class ImageUtilities {
 			.catch(function(error) {
 				console.log(error)
 			});
+	}
+
+	fillDecodedComponent(componentName, values) {
+		let component = this.decodedImage._decoder.components[componentMap[componentName]];
+		let index = 0;
+		for (let i = 0; i < component.lines.length; i++) {
+			let line = component.lines[i];
+			for (let j = 0; j < line.length; j++) {
+				line[j] = values[index];
+				index ++;
+			}
+		}
+	}
+
+	subsampleAndRedraw(componentName, scale) {
+		if (componentName == 'Y' || componentName == 'Cb' || componentName == 'Cr') {
+			let component = this.savedComponents[componentName];
+			if (component == undefined) {
+				component = this.getDecodedComponent(componentName);
+				this.savedComponents[componentName] = component.slice();
+			}
+			component = component.slice();
+
+			if (scale == 0) {
+				for (let i = 0; i < component.length; i++) {
+					let defaultVal = 128;
+
+					component[i] = defaultVal;
+				}
+			} else {
+				// TODO make sure to pass the right width and height here if the component is downsampled already?
+				component = subsampleComponent(component, scale, this.decodedImage.width, this.decodedImage.height);	
+			}
+
+			this.fillDecodedComponent(componentName, component);
+
+			let decodedImage = this.decodedImage;
+			decodedImage._decoder.copyToImageData({
+				width: decodedImage.width,
+				height: decodedImage.height,
+				data: decodedImage.data
+			});
+
+			this.drawDecodedImage();	
+		} else if (componentName == 'R' || componentName == 'G' || componentName == 'B') {
+			let decodedImage = this.decodedImage;
+			let dataCopy = decodedImage.data.slice();
+			let component = extractComponentFromPixelData(dataCopy, componentName);
+
+			if (scale == 0) {
+				for (let i = 0; i < component.length; i++) {
+					component[i] = 0;
+				}
+			} else {
+				component = subsampleComponent(component, scale, decodedImage.width, decodedImage.height);	
+			}
+
+			fillPixelData(dataCopy, componentName, component);
+			this.drawPixelData(dataCopy, decodedImage.width, decodedImage.height);
+		}
 	}
 
 	onEditorChange() {
@@ -137,16 +284,26 @@ class ImageUtilities {
 			let Cr = [];
 			for (let i = 0; i < values.length; i+= scale + 2) {
 				for (let j = 0; j < scale; j++) {
-					Y.push(values[i + j]);
-					// To "scale up" the Cb and Cr, just duplicate them
-					Cb.push(values[i + scale]);
-					Cr.push(values[i + scale + 1]);
+					Y.push(values[i + j])
 				}
+				Cb.push(values[i + scale])
+				Cr.push(values[i + scale + 1]);
 			}
 
-			// Convert them to RGB
-			// draw using putImage since it's just a list of RGB
-			this.drawYCbCr(Y, Cb, Cr);
+			// To draw these components, we copy them back into the decoded image
+			// and redraw it.
+			this.fillDecodedComponent('Y', Y);
+			this.fillDecodedComponent('Cb', Cb);
+			this.fillDecodedComponent('Cr', Cr);
+
+			let decodedImage = this.decodedImage;
+
+			decodedImage._decoder.copyToImageData({
+				width: decodedImage.width,
+				height: decodedImage.height,
+				data: decodedImage.data
+			});
+			this.drawDecodedImage();
 		}
 
 		if (this.editMode == 'full-dctLuminance') {
@@ -208,7 +365,7 @@ class ImageUtilities {
 					}
 				}
 			}
-			
+
 			this.reEncodeImage();
 			this.drawDecodedImage();
 		}
@@ -248,6 +405,7 @@ class ImageUtilities {
 	}
 
 	updateByteCounter() {
+		if (this.byteCounter == undefined) return;
 		let values  = this.getValuesFromEditor();
 		this.byteCounter.innerHTML = "Size: " + (values.length / 1000).toFixed(2) + " kb.";
 		this.byteCounter.innerHTML += " Dimensions: " + this.imageWidth + " x " + this.imageHeight;
@@ -281,9 +439,12 @@ class ImageUtilities {
 		return this.editor.getSession().getValue().trim().split('\n')[0].length;
 	}
 
-	getValuesFromEditor() {
+	getValuesFromEditor(overrideText) {
 		// Takes the text in the editor and converts it to an array of numbers.
-		let text = this.editor.getSession().getValue();
+		let text = overrideText;
+		if (text == undefined) {
+			text = this.editor.getSession().getValue();
+		}
 		let lines = text.trim().split('\n');
 		let values = [];
 		for (let line of lines) {
@@ -355,6 +516,8 @@ class ImageUtilities {
 		editor.session.setMode("ace/mode/assembly_x86");
 		editor.getSession().setUseWrapMode(true);
 		editor.getSession().on('change', function() {
+			if (editor.getValue().length == 0)
+				return;
 			that.onEditorChange();
 		});
 		// Create canvas
@@ -371,21 +534,21 @@ class ImageUtilities {
 				var rect = event.target.getBoundingClientRect();
 				var x = event.clientX - rect.left; //x position within the element.
 				var y = event.clientY - rect.top;  //y position within the element.
-				
+
 				// Need to know which component, to get the scale.
 				let componentData = that.decodedImage._decoder.frames[0].components[componentMap['Y'] + 1];// Hardcoded to 'Y';
 				let scale = 1; // You can compute the scale for a component by doing
 				// scaleX: component.h / frame.maxH
 				// scaleY: component.v / frame.maxV
-				
+
 				// Then divide x and y by 8
 				x /= 8; y/= 8;
 				x /= scale; y/= scale;
 				let cssScaleX = canvas.width / canvas.offsetWidth;
     			let cssScaleY = canvas.height / canvas.offsetHeight;
-    			x *= cssScaleX; 
+    			x *= cssScaleX;
     			y *= cssScaleY;
-				
+
 				// Then the line no is x * blocksPerLine + y * blocksPerColumn
 				let lineNo = Math.floor(x) + Math.floor(y) * componentData.blocksPerLine;
 				event.target.editor.scrollToLine(lineNo);
@@ -401,9 +564,6 @@ class ImageUtilities {
 
 	drawRawBytes() {
 			const byteArray = new Uint8Array(this.totalBytes);
-			// For some reason, when you hit reset or click a link, it triggers twice, and totalBytes is 1?
-			if (this.totalBytes.length == 1) return;
-			console.log(this.totalBytes);
 			// Take the header and body bytes and draw them.
 			//const byteArray = new Uint8Array((this.header + ',' + this.body).split(',').map(parseFloat));
     	let blob = new Blob([byteArray.buffer], {type: 'image/jpeg'});
@@ -429,6 +589,15 @@ class ImageUtilities {
     		let corruptedImage = that.corruptedImage;
     		ctx.drawImage(corruptedImage, 0, 0, canvas.width, canvas.height);
     	})
+	}
+
+	drawPixelData(pixelData, width, height) {
+		let canvas = this.canvas;
+		canvas.width = width;
+		canvas.height = height;
+		let ctx = canvas.getContext('2d');
+		let imageData = new ImageData(new Uint8ClampedArray(pixelData), width, height);
+		ctx.putImageData(imageData, 0, 0);
 	}
 
 	drawDecodedImage(mode) {
@@ -531,12 +700,12 @@ class ImageUtilities {
 	}
 
 	getDecodedComponent(component) {
-    let lines = this.decodedImage._decoder.components[componentMap[component]].lines;
+    	let lines = this.decodedImage._decoder.components[componentMap[component]].lines;
 		let values = [];
 		for (let i = 0; i < lines.length; i++) {
-			if ( i >= this.decodedImage.height) break; // Account for byte stuffing?
+			//if ( i >= this.decodedImage.height) break; // Account for byte stuffing?
 			for (let j = 0; j < lines[i].length; j++) {
-				if (j >= this.decodedImage.width) break;
+				//if (j >= this.decodedImage.width) break;
 				values.push(lines[i][j])
 			}
 		}
