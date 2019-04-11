@@ -87,7 +87,8 @@ class SubsampleGrid extends D3Component {
         that.savedComponents['Cb'] = imageEditor.getDecodedComponent('Cb');
         that.savedComponents['Cr'] = imageEditor.getDecodedComponent('Cr');
 
-        redrawAll(10, imageEditor, that.originalData, that.savedComponents)
+        that.update(props);
+        //redrawAll(10, imageEditor, that.originalData, that.savedComponents)
       }).catch(e => {
         console.log(e);
       });
