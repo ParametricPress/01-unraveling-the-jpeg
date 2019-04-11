@@ -11,6 +11,7 @@ class TextArea extends React.Component {
       let text = imageEditor.resetText;
       //let text = imageEditor.editor.getSession().getValue();
       let lines = text.split('\n');
+      let sentValuesToEditor = false;
       if (pattern == undefined) {
         for (let i = 0; i < lines.length; i++) {
           if (i == line - 1) {
@@ -62,28 +63,36 @@ class TextArea extends React.Component {
         }
       } else {
         let count = 0;
-        for (let i = 0; i < lines.length; i++) {
-          let numbers = lines[i].trim().split(" ");
-          for (let j = 0; j < numbers.length; j++) {
-            let index = count % (scale + 2);
-            count ++;
-            if (index > 3 && pattern == "isolate-Y") {
-              numbers[j] = "128";
-            }
-            if (index != 4 && pattern == "isolate-Cb") {
-              numbers[j] = (index < scale) ? (numbers[j+(scale-index)]) : "128";
-            }
-            if (index != 5 && pattern == "isolate-Cr") {
-              numbers[j] = (index < scale) ? (numbers[j+(scale+1-index)]) : "128";
-            }
+        let values = imageEditor.getValuesFromEditor(imageEditor.resetText);
+        let newValues = [];
+        for (let i = 0; i < values.length; i+= scale + 2) {
+          for (let j = 0; j < scale; j++) {
+            let lookAheadCb = values[i + scale];
+            let lookAheadCr = values[i + scale + 1];
+
+            let Y = (pattern == 'isolate-Y') ? values[i + j] : 128;
+            newValues.push(Y)
           }
-          lines[i] = numbers.join(" ");
+
+          let Cb = (pattern == 'isolate-Cb') ? (values[i + scale]) : 128;
+          let Cr = (pattern == 'isolate-Cr') ? (values[i + scale + 1]) : 128;
+
+          newValues.push(Cb) 
+          newValues.push(Cr);
         }
+
+        let samplesPerLine = imageEditor.samplesPerLine;
+        imageEditor.putValuesInEditor(newValues, samplesPerLine);
+        sentValuesToEditor = true;
       }
       
-      text = lines.join('\n');
-      imageEditor.editor.setValue(text, -1);
-      imageEditor.editor.scrollToLine(line - 1);
+      if (!sentValuesToEditor) {
+        text = lines.join('\n');
+        imageEditor.editor.setValue(text, -1);
+        imageEditor.editor.scrollToLine(line - 1);  
+      }
+      
+
         // this.props.updateProps({ value: e.target.value });
     }
     render() {
