@@ -17,13 +17,11 @@
   source:""
 /]
 
-It's easy to take it for granted that you can send a picture to a friend without worrying about what device, browser, or operating system they’re using, but things weren’t always this way. By the early 1980's, computers could store and display digital images, but there were many different ideas about how best to do that, so you couldn't just send an image from one computer to another and expect it to work. To solve this problem, the Joint Photographic Experts Group (JPEG), a committee of experts from all over the world, was established in 1986 as a joint effort by the ISO and the IEC — two international standards organizations headquartered in Geneva, Switzerland.
+It's easy to take it for granted that you can send a picture to a friend without worrying about what device, browser, or operating system they’re using, but things weren’t always this way. By the early 1980's, computers could store and display digital images, but there were many competing ideas about how best to do that, so you couldn't just send an image from one computer to another and expect it to work. To solve this problem, the Joint Photographic Experts Group (JPEG), a committee of experts from all over the world, was established in 1986 as a joint effort by the ISO and the IEC — two international standards organizations headquartered in Geneva, Switzerland.
 
 JPEG, the group of people, created JPEG, a standard for digital image compression in 1992. Anyone who's ever used the internet has probably seen a JPEG-encoded image. It is by far the most ubiquitous way of encoding, sending and storing images. From web pages to email to social media, JPEGs are used billions of times a day — almost every time we view or send images online. Without JPEG, the web would be a little less colorful, a lot slower, and probably have far fewer cat pictures!
 
-This article is about how to decode a JPEG image. Or in other words, it's about what it takes to convert the compressed data stored on your computer to the image that appears on the screen. It's worth learning about not just because it's important to understand the technology we all use everyday, but as we unravel the layers of compression, we learn a bit about ourselves, and about what details our eyes are most sensitive to.
-
-// Do we not want to say anything here about how it's also an exploration into some interesting mathematics? On one hand, I never explain how to actually perform the DCT to represent an image as a sum of waves, but on the other hand, I think this is the only article that shows you what that means and lets you explore it.
+This article is about how to decode a JPEG image. Or in other words, it's about what it takes to convert the compressed data stored on your computer to the image that appears on the screen. It's worth learning about not just because it's important to understand the technology we all use everyday, but as we unravel the layers of compression, we learn a bit about perception and vision, and about what details our eyes are most sensitive to. 
 
 It's also just a lot of fun to play with images this way.
 
@@ -39,11 +37,7 @@ It's also just a lot of fun to play with images this way.
 
 Everything on a computer is stored as a series of binary numbers. Typically, these bits, the zeroes and ones, are arranged in groups of eight, known as bytes. When you open a JPEG image on your computer, something (the browser, your operating system, or something else) has to decode the bytes to recover the original image as a list of colors that can then be displayed.
 
-// [aside]
-// [img src:"static/images/blanket-cat.jpg"/]
-// [/aside]
-
-Take a typical JPEG image you might encounter on the internet. If you download and open this image using any text editor, you'll see a bunch of garbled characters.
+If you download [Reference content:"The adorable kitten image used in this article was taken by <a href='https://unsplash.com/photos/NodtnCsLdTE'>Mikhail Vasilyev on Unplash</a>"]that picture of the cat[/Reference] and open it using any text editor, you'll see a bunch of garbled characters.
 
 [Right fullWidth:true]
   [img src:"static/images/blanket-cat-notepad.png"/]
@@ -54,14 +48,13 @@ Take a typical JPEG image you might encounter on the internet. If you download a
 
 [br/]
 
-By opening an image in a text editor, you’ve confused the computer, much in the same way you might confuse your brain when you rub your eyes too hard and start to see blotches of dimness and color.
+By opening an image in a text editor, you’ve confused the computer, in the same way you confuse your brain when you rub your eyes too hard and start to see blotches of dimness and color!
 
-These blotches you see — known as [a href:"https://en.wikipedia.org/wiki/Phosphene"]“phosphenes”[/a] — don't come from any light stimulus, nor are they hallucinations made up in your mind. They arise because your brain assumes that any electrical signal arriving through the nerves in your eye is conveying light information. The brain needs to make this assumption because there’s no way to know whether a given signal is sound, sight, or something else. All the nerves in your body carry exactly the same type of electrical pulse. When you apply pressure by rubbing your eyes, you’re sending non-visual signals that trigger the receptors in your eye, which your brain interprets — incorrectly, in this case — as vision.
+These blotches you see — known as [a href:"https://en.wikipedia.org/wiki/Phosphene"]“phosphenes”[/a] — don't come from any light stimulus, nor are they hallucinations made up in your mind. They arise because your brain assumes that any electrical signal arriving through the nerves in your eye is conveying light information. The brain needs to make this assumption because there’s no way to know whether a given signal is sound, sight, or something else. All the nerves in your body carry exactly the same type of electrical pulse. When you apply pressure by rubbing your eyes, you’re sending non-visual signals that trigger the receptors in your eye, which your brain interprets — incorrectly, in this case — as vision. You can literally see the pressure!
 
 It’s fun to think about how similar computers are to our brains, but this is also a useful analogy because it illustrates how much the meaning of data — whether carried through a body by nerves, or stored in a computer — relies on how you interpret it. All binary data is made up of ones and zeroes, basic components that could be conveying any kind of information. Your computer often guesses how to interpret it using clues, like the file extension. Here we’ve forced it to interpret it as text, because that’s what a text editor expects.
 
-To understand how a JPEG is decoded we need to see the original signals themselves, the binary data. This can be done with a [Tooltip content:"You don't necessarily <i>need</i> a hex editor. You can edit the characters as text, save the file, and re-open it as an image just fine. Try removing the * in line 10 for example and see what happens. But since our goal is to understand how JPEG stores images, it's helpful to be able to actually read the bits!"]hex editor[/Tooltip]; or it can be done right here in this webpage! Below is the image next to [Tooltip content:"The JPEG header is omitted since most changes in it corrupt the image. It's covered in part 3 below."]all of its bytes[/Tooltip], represented as decimal numbers. You can make changes to the bytes, and it will re-decode and display the new, edited image as you type.
-// TODO: For some reason, the reset button triggers the decode twice??
+To understand how a JPEG image is decoded we need to see the original signals themselves — the binary data. This can be done with a [Tooltip content:"You don't necessarily <i>need</i> a hex editor. You can edit the characters as text, save the file, and re-open it as an image just fine. But since our goal is to understand how JPEG stores images, it's helpful to be able to actually read the bytes!"]hex editor[/Tooltip]; or it can be done right here in this webpage! Below is the image next to [Tooltip content:"The only thing omitted here is the header, which is the first ~200 bytes that contain metadata like the width and height of the image. We'll revist this later in the article."]all of its bytes[/Tooltip], represented as decimal numbers. You can make changes to the bytes, and it will re-decode and display the new, edited image as you type.
 
 [RawEditor ref:"Raw1" fullWidth:true imageUrl:"static/images/blanket-cat.jpg" showHeader:false /]
 
@@ -77,8 +70,7 @@ Something strange in the example above is that changing some numbers doesn't see
 
 Perhaps what's most peculiar is that some numbers change not just the color but the shape of the image as well. Change the [EditorLink editor:`refs.Raw1` line:12 search:' 70 ' replace:' 2 ']70 in line 12 to 2[/EditorLink] and look at the top row of the image to see what I mean. You'll always find these mysterious checkboard patterns lurking regardless of what JPEG you're using.
 
-
-It's hard to decipher the relationship between the bytes and the image by playing around like this, because JPEG compression is actually composed of 3 different compression techniques, which are applied in successive layers. We'll look at each of these layers of compression separately to unravel this mysterious behavior we're seeing.
+It's hard to decipher how the image can be reconstructed from these bytes by playing around like this, because JPEG compression is actually composed of 3 different compression techniques, which are applied in successive layers. We'll look at each of these layers of compression separately to unravel this mysterious behavior we're seeing.
 
 
 [inset]
@@ -90,9 +82,7 @@ It's hard to decipher the relationship between the bytes and the image by playin
 
 [/inset]
 
-To give you an idea of the scale of this compression, notice that the image above is represented using exactly 79,819 numbers,
-// (TODO: Compute automatically?)
-which makes it about 79 kilobytes. If it were stored with no compression, 3 numbers would be needed for each pixel — one for each of the red, green and blue components. That would mean a total of 917,700 numbers, or about 917 kilobytes. With the JPEG compression, the resulting file is over **ten times smaller**!
+To give you an idea of the scale of this compression, notice that the image above is represented using exactly 79,819 numbers, which makes it about 79 kilobytes. If it were stored with no compression, 3 numbers would be needed for each pixel — one for each of the red, green and blue components. That would mean a total of 917,700 numbers, or about 917 kilobytes. With JPEG compression, the resulting file is over **ten times smaller**!
 
 In fact, this image can be squeezed into far fewer bytes. Below is the image next to a version of it that was compressed down to just 16 kilobytes, which makes it **fifty seven times smaller** than the uncompressed version would be!
 
@@ -103,7 +93,7 @@ If you look closely you'll see that these images are not identical. Both are JPE
 
 ## Part 1 - Chrominance Subsampling
 
-Here's the same image with just the first layer of compression applied.
+Here's the image with just the first layer of compression applied.
 
 [ChromaEditor ref:"Chroma1" imageUrl:"static/images/blanket-cat-smallest.jpg" /]
 
@@ -111,11 +101,11 @@ Here's the same image with just the first layer of compression applied.
 _Hint: Notice that removing one number ruins all the colors. But removing exactly 6, or any multiple of 6, has a minimal effect on the image._[br/]
 [/aside]
 
-It's a little more straightforward to decipher now. It's almost a simple list of colors, where each byte changes exactly one pixel, and yet it's already almost twice as small as the uncompressed image. Can you guess why?
+It's a little more straightforward to decipher now. It's almost a simple list of colors, where each byte changes exactly one pixel, and yet it's already almost twice as small as the uncompressed image (which would be ~300 kb for this smaller size). Can you guess why?
 
 You can tell that these numbers don't represent the standard red, green and blue components because [EditorLink editor:`refs.Chroma1` pattern:'zero-all']replacing all the numbers with 0[/EditorLink] turns the image green (as opposed to black). 
 
-These bytes represent the [EditorLink editor:`refs.Chroma1` pattern:'isolate-Y' scale:4]Y[/EditorLink] (brightness), [EditorLink editor:`refs.Chroma1` pattern:'isolate-Cb' scale:4]Cb[/EditorLink] (blueness), and [EditorLink editor:`refs.Chroma1` pattern:'isolate-Cr' scale:4]Cr[/EditorLink] (redness) of the image.
+This is because these bytes represent the [EditorLink editor:`refs.Chroma1` pattern:'isolate-Y' scale:4]Y[/EditorLink] (brightness), [EditorLink editor:`refs.Chroma1` pattern:'isolate-Cb' scale:4]Cb[/EditorLink] (relative blueness), and [EditorLink editor:`refs.Chroma1` pattern:'isolate-Cr' scale:4]Cr[/EditorLink] (relative redness) of the image.
 
 Why not just use RGB? After all, that's how most modern screens work. Your monitor can display any color by turning on red, green and blue lights at various intensities for each pixel. White is displayed by turning on all 3 colors at full brightness, while black is displayed by turning them all off.
 
@@ -124,141 +114,86 @@ Why not just use RGB? After all, that's how most modern screens work. Your monit
 [caption]Credit: http://www.chem.purdue.edu/jmol/cchem/RGBColors/body_rgbcolors.html [/caption]
 [br/]
 
-That's also very similar to how human eyes work. The color receptors in our eyes known as “cones” are split into three types, each of which is sensitive either to red, green, or blue. Rods, the other type of receptor we have in our eyes, can only detect changes in brightness, but they’re far more sensitive, and we have about one hundred and twenty million of them, compared to a measly six million cones.
+That's also very similar to how human eyes work. The color receptors in our eyes known as “cones” are split into three types, each of which is mostly sensitive either to red, green, or blue. Rods, the other type of receptor we have in our eyes, can only detect changes in brightness, but they’re far more sensitive, and we have about one hundred and twenty million of them, compared to a measly six million cones.
 
-This means that our eyes are much more sensitive to changes in brightness than they are to changes in color. If we can separate the color from the brightness, we can throw away a bit of the color without a very noticeable change. This is what chrominance subsampling is. In the example above, each pixel has one Y component, while each 4 pixels share one Cb and one Cr, so the image contains only a quarter as much color information as it originally did. 
+This means that our eyes are much better at detecting changes in brightness than they are at detecting changes in color. If we can separate the color from the brightness, we can throw away a bit of the color without anyone noticing. This is exactly what chrominance subsampling is. In the example above, each pixel has one Y component, while each 4 pixels share one Cb and one Cr, so the image contains only a quarter as much color information as it originally did. 
 
-// Mention that TV uses YCbCr for the same reason too? Maybe as an aside?
+[aside]
+Using the YCbCr colorspace is not unique to JPEG. In fact, it was originally developed in 1938 (TODO MAKE THIS  ALINK https://en.wikipedia.org/wiki/GeorgesValensi ) for TV broadcasts. Not everyone had color TVs, so separating out the color from the luminance allowed everyone to receive the same transmission, and TVs that didn't support color would just use the luminance component.
+[/aside]
 
-That's why removing 1 number completely ruins the color. Here, the [Reference content:"JPEG images don't store the components in any particular order. They might be interleaved like in this example, or all the Y components of the image could be stored, followed by all the Cb etc. The header of the JPEG is what tells us how the components are stored."]components are stored[/Reference] as **Y Y Y Y Cb Cr**. Removing the first number causes the Cb value to be interpreted as Y, the Cr as Cb, and creates a ripple effect that flips all the colors across the image.
+This is why removing 1 number from the diagram above completely ruins the color. Here, the [Tooltip content:"In general, JPEG images don't store the components in any particular order. They might be interleaved like in this example, or all the Y components of the image could be stored, followed by all the Cb etc. The header of the JPEG is what tells us how the components are stored."]components are stored[/Tooltip] as **Y Y Y Y Cb Cr**. Removing the first number causes the Cb value to be interpreted as Y, the Cr as Cb, and creates a ripple effect that flips all the colors across the image.
 
-// Mention why it's green all set to 0.
+There's nothing in the JPEG specification that says you must use YCbCr, or that you can't subsample the Y component. You can see for yourself in the diagram below what it would look to subsample each component individually. This is actually the type of experiment conducted to figure out which colors our eyes are most sensitive to.
 
-JPEG always downsamples chrominance, presumably because they've done the empirical tests. But can we prove this for ourselves?
-
-//Not all JPEG images use subsampling, but those that do always subsample the chrominance components. This makes sense given our eyes our more sensitive to luminance, but we're not equally sensitive to all colors. Of the 6 millions cones, about 64% are most sensitive to red, 32% to green, and just 2% to blue.
-
-// There's nothing in the JPEG standard that says you have to subsample the chrominance components.  
-[var name:"subsamplePercent" value:1 /]
+[var name:"subsamplePercent" value:0.15 /]
 [SubsampleGrid imageUrl:"static/images/blanket-cat-tiny.jpg" subsamplePercent:`subsamplePercent` /]
 [Range value:subsamplePercent min:0 max:1 step:0.05 /]
 
-Downsampling the color gives us an easy way to get the image 3x smaller, but there is a long way to go to get to 57x smaller. Plus, this wouldn't give us any gain if the image was already black and white. There's got to be a lot more that can be throw away.
+[aside]
+Removing a bit of blue isn't as noticeable as removing red or green. This is because of the six million cones you have in your eyes, about 64% are most sensitive to red, 32% to green, and only 2% to blue.
+[/aside]
+
+Subsampling the Y component (bottom left) has the greatest effect on the image quality. Even a tiny bit is already noticable. You can move the slider to see how removing a greater % of each component affects the image. 
+
+Representing an image in the YCbCr colorspace doesn't in itself make it any smaller than using RGB, but it allows us to more easily pick out less noticeable details to throw away (in this case, color). This idea of finding new ways to represent data to make it more compressible is very common in compression techniques, and is at the heart of what the next layer does.
 
 ## Part 2 - Discrete Cosine Transform & Quantization
 
-The second layer of compression is the most fascinating. It's largely the defining feature of JPEG. After the colors are converted to YCbCr, the components are compressed individually. Here's what the bytes for the Y component look like with this layer applied.
-
-// TODO: You can actually use this to progressively stream an image! But JPEG already thought of this, and you needed a patent. WE can actually see a gif of this though
+This layer of compression is largely the defining feature of JPEG. After the colors are converted to YCbCr, the components are compressed individually, so we can focus on just the Y component for the rest of the article. Here's what the bytes for the Y component look like with this layer applied.
 
 [DctEditor ref:"DCT1" comp:"Y" imageUrl:"static/images/blanket-cat-smallest.jpg" /]
 
-At first glance, this seems like very poor compression. There are 100,000 pixels in this image, and yet it takes 102,400 numbers to represent the luminance of each pixel using this layer of compression - that's worse than not compressing it at all!
+[aside]
+Hint: Try clicking on any pixel in the image to see the line in the editor that represents it. Try removing numbers from the end, or adding a few zero's to any individual number to make its effect more obvious.
+[/aside]
 
-But notice that most of these values are 0. In fact, [EditorLink editor:`refs.DCT1` pattern:"remove-zeros"]all of these zeros can be removed[/EditorLink] and only ~23,000 numbers are left, which makes it about 4x smaller!
+At first glance, this seems like very poor compression. There are 100,000 pixels in this image, and yet it takes 102,400 numbers to represent the luminance of each pixel — that's worse than not compressing it at all!
 
-In this layer lies the secret to the checkboard patterns. Unlike the other effects so far, the appearance of these patterns is not a glitch. They are in fact the building blocks of the entire image! Every line in the editor contains exactly 64 numbers, known as the Discrete Cosine Transform (DCT) coefficients, which correspond to intensities of 64 unique patterns.
+But notice that most of these values are 0. In fact, [EditorLink editor:`refs.DCT1` pattern:"remove-zeros"]all of these zeros can be removed[/EditorLink] with no change to the image. This leaves only ~23,000 numbers, which makes it about 4x smaller!
 
-You can see each of these patterns by zeroing out all but one of the numbers in any line. Here's an image that shows all of them individually.
+In this layer lies the secret to the checkerboard patterns. Unlike the other effects we've seen, the appearance of these patterns is not a glitch. They are in fact the building blocks of the entire image! Every line in the editor above contains exactly 64 numbers, known as the Discrete Cosine Transform (DCT) coefficients, which correspond to intensities of 64 unique patterns.
 
-[DctEditor  ref:"DCT2" imageUrl:"static/images/DCTGrid.jpg" override:"254 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
-0 254 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
-0 0 254 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
-0 0 0 254 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
-0 0 0 0 254 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
-0 0 0 0 0 254 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
-0 0 0 0 0 0 254 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
-0 0 0 0 0 0 0 254 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
-0 0 0 0 0 0 0 0 254 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
-0 0 0 0 0 0 0 0 0 254 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
-0 0 0 0 0 0 0 0 0 0 254 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
-0 0 0 0 0 0 0 0 0 0 0 254 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
-0 0 0 0 0 0 0 0 0 0 0 0 254 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
-0 0 0 0 0 0 0 0 0 0 0 0 0 254 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
-0 0 0 0 0 0 0 0 0 0 0 0 0 0 254 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
-0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 254 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
-0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 254 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
-0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 254 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
-0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 254 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
-0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 254 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
-0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 254 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
-0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 254 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
-0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 254 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
-0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 254 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
-0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 254 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
-0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 254 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
-0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 254 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
-0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 254 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
-0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 254 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
-0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 254 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
-0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 254 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
-0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 254 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
-0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 254 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
-0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 254 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
-0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 254 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
-0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 254 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
-0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 254 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
-0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 254 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
-0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 254 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
-0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 254 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
-0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 254 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
-0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 254 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
-0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 254 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
-0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 254 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
-0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 254 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
-0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 254 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
-0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 254 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
-0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 254 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
-0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 254 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
-0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 254 0 0 0 0 0 0 0 0 0 0 0 0 0 0
-0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 254 0 0 0 0 0 0 0 0 0 0 0 0 0
-0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 254 0 0 0 0 0 0 0 0 0 0 0 0
-0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 254 0 0 0 0 0 0 0 0 0 0 0
-0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 254 0 0 0 0 0 0 0 0 0 0
-0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 254 0 0 0 0 0 0 0 0 0
-0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 254 0 0 0 0 0 0 0 0
-0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 254 0 0 0 0 0 0 0
-0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 254 0 0 0 0 0 0
-0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 254 0 0 0 0 0
-0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 254 0 0 0 0
-0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 254 0 0 0
-0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 254 0 0
-0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 254 0
-0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 254"/]
+You can see each of these patterns by zeroing out all but one of the numbers in any line. Here's an image that shows all 64 of them individually.
 
-These patterns are special because they form a basis for 8x8 images. If you're not familiar with linear algebra, what that means is that any 8x8 image, anything at all that you can image, can be made out of these specific 64 patterns. The Discrete Cosine Transform is the process of converting the colors of an image to these 64 coefficients.
+[data name:"DCT-grid" source:"DCT-grid.json" /]
+[data name:"DCT-circle" source:"DCT-circle.json" /]
+[data name:"DCT-eye" source:"DCT-eye.json" /]
+[DctEditor  ref:"DCT2" imageUrl:"static/images/DCTGrid.jpg" override:DCT-grid/]
 
-If you're not convinced (I wasn't when I first heard this!) you can see this for yourself. Go back to the image at the start of this section. You can click on any pixel (the eyes are a good one to try) and it'll show you what line in the editor has its bytes. Start removing numbers from the end of the line and watch what happens to the shape of the pixels. Another way is to increase the values to make it more obvious which pattern it is and how they each contribute to the image you see.
+These patterns are special because they form a basis for 8x8 images. If you're not familiar with linear algebra, what that means is that any 8x8 image, anything at all that you can imagine, can be made out of these specific 64 patterns. The Discrete Cosine Transform is the process of converting the colors of an image to these 64 coefficients. Here's [EditorLink editor:`refs.DCT2` pattern:"animate-DCT" DCT:DCT-circle]how you would form a circle[/EditorLink] by combining these patterns, or [EditorLink editor:`refs.DCT2` pattern:"animate-DCT" DCT:DCT-eye]the cat's face[/EditorLink]. You can [EditorLink editor:`refs.DCT2` pattern:"animate-DCT" DCT:DCT-grid]click here to go back to the grid of 64 patterns[/EditorLink].
 
-It might seem a little magical to be able to say that any image can be represented using 64 specific patterns. But this is the same thing as saying only two numbers are needed to represent any location on the surface of the globe: longitude and latitude. The surface of the Earth is 2 dimensional, so two numbers are needed. An 8x8 image is 64 dimensional, so it requires 64 numbers.
+It seems like magic to say that any image can be represented using 64 specific patterns. But this is the same thing as saying any location on the Earth can be represented using only two numbers: longitude and latitude. The surface of the Earth is two-dimensional, so two numbers are needed. An 8 x 8 image is sixty-four-dimensional, so we need sixty-four numbers.
 
-In terms of compression, it's not obvious how this helps. If 64 numbers are needed to represent an 8x8 image, why is this better than storing the 64 luminance components? For the same reason converting from the 3 numbers of RGB to the 3 numbers of YCbCr helped: it enables the removal of details that are less noticeable.
+In terms of compression, it’s not obvious how this helps us. If we need sixty-four numbers to represent an 8 x 8 image, why is this better than storing the sixty-four luminance components? For the same reason we converted from the three numbers of RGB to the three numbers of YCbCr: it allows us to remove detail that’s less noticeable.
 
-While JPEG only applies the Discrete Cosine Transform to blocks of 8x8 pixels at a time, but there's no reason it can't be applied it to the whole image, which will make it easier to see. Here's what it looks like applied to the Y component of the entire image.
+While JPEG only applies the Discrete Cosine Transform to blocks of 8 x 8 pixels at a time, there’s no reason we can’t apply it to the whole image. Here’s what it looks like applied to the Y component of the entire image:
 
 [FullDctEditor ref:"DCT3" imageUrl:"static/images/blanket-cat-smallest.jpg"/]
 
-Over [EditorLink editor:`refs.DCT3` pattern:"remove-{170}"]60,000 numbers can be removed[/EditorLink] from the end with almost no noticable change. But notice that if [EditorLink editor:`refs.DCT3` pattern:"zero-{5}"]just the first five numbers are zeroed out[/EditorLink] (ignoring the first because it just makes the image darker) there's already an obvious change.
+We can [EditorLink editor:`refs.DCT3` pattern:"remove-{170}"]remove over 60,000 numbers[/EditorLink] from the end with almost no noticeable change. But notice that if [EditorLink editor:`refs.DCT3` pattern:"zero-{5}"]we set just the first five numbers to zero[/EditorLink] (ignoring the first because it just makes the image darker) there's already an obvious difference.
 
-The patterns at the beginning represent the low frequency changes in the image, which our eyes are more sensitive to, while numbers towards the end represent the high frequency changes, which we're less sensitive to, so we don't notice when they're gone. I promised I'd show you what that looks like, so here's the image with the [EditorLink editor:`refs.DCT3` pattern:"zero-{5000}"]first 5000 numbers zeroed out[/EditorLink].
+The numbers at the beginning represent the lower frequency changes in the image, which our eyes are more sensitive to, while numbers towards the end represent the higher frequency changes, which we're less sensitive to, so we don't notice when they're gone. I promised I'd show you "what our eyes can't see", so let's isolate these high frequency details by setting the [EditorLink editor:`refs.DCT3` pattern:"zero-{5000}"]first 5000 numbers to zero[/EditorLink].
 
-What you're looking at here is all the areas of the image that have the greatest change from one pixel to the next. The cat's eyes, whiskers, fuzzy blanket and shadows on the bottom left all stand out. This can be taken even further, to [EditorLink editor:`refs.DCT3` pattern:"zero-{10000}"]zeroeing out the first 10,000[/EditorLink] numbers, to [EditorLink editor:`refs.DCT3` pattern:"zero-{20000}"]20,000[/EditorLink], to [EditorLink editor:`refs.DCT3` pattern:"zero-{40000}"]40,000[/EditorLink] and [EditorLink editor:`refs.DCT3` pattern:"zero-{60000}"]60,000[/EditorLink].
+What you're looking at here is all the areas of the image that have the greatest change from one pixel to the next. The cat's eyes, whiskers, fuzzy blanket and shadows on the bottom left all stand out. This can be taken even further, to setting the first [EditorLink editor:`refs.DCT3` pattern:"zero-{10000}"]10,000 numbers to zero[/EditorLink], [EditorLink editor:`refs.DCT3` pattern:"zero-{20000}"]20,000[/EditorLink], [EditorLink editor:`refs.DCT3` pattern:"zero-{40000}"]40,000[/EditorLink] or [EditorLink editor:`refs.DCT3` pattern:"zero-{60000}"]60,000[/EditorLink].
 
-What you're looking at is what JPEG removes during this compression step. The Discrete Cosine Transform itself is not lossy. It's the quantization of these numbers, where we remove the small values closer to the end, that's lossy. The lower the quality, the more numbers we remove, the greater the compression.
-// TODO - add a callback to the "amount of compression" referenced in the earlier section
+These details are what JPEG removes during this compression step. Converting the colors to the DCT coefficients is not a lossy operation. It's the quantization step that's lossy, where values that are either high frequency, or are close to zero, are removed. The more you remove, the greater the compression, and worse the final quality of the image is. This is why the version of the image in the first section that was 57x smaller looked blocky. Each 8 x 8 block was represented by far fewer DCT coefficients.
 
-// TODO: Mention that quantization is to map these values back to the 0-255 range.
-// Hypothesis: images with text have lots of high frequency changes. We can prove this now! This makes sense because JPEG was made for images.
+Just for fun, here's what it looks like using just [EditorLink editor:`refs.DCT3` pattern:"remove-{268}"]24,000 numbers[/EditorLink], or just [EditorLink editor:`refs.DCT3` pattern:"remove-{316}"]5000 numbers[/EditorLink]. Pretty blurry, but almost recognizable!
 
-Just for fun, here's what it looks like [EditorLink editor:`refs.DCT3` pattern:"remove-{268}"]using just 24,000 numbers[/EditorLink], and [EditorLink editor:`refs.DCT3` pattern:"remove-{316}"]just 5000 numbers[/EditorLink]. Pretty blurry, but almost recognizable!
-
-// A very similar technique is the [a href:"http://www.jezzamon.com/fourier/"]fourier transform[/a]. It's used in audio too!
-
-// How does DCT work? Here's the equation. We can plug in the numbers. I don't really want to talk about this unless I can graph the functions, in 3D?
+[aside]
+One really cool thing you can do with this technique is progressively stream images. Imagine seeing a blurry version of the whole image, and slowly seeing it become more and more detailed as the download progresses and more DCT coefficients are available. This is actually possible to do with JPEG, but not as commonly used.
+[/aside]
 
 ## Part 3 - Huffman, Run-Length & Delta Encoding
 
+TODO: Now that we've removed color, and removed high frequency, the final remaining layer is lossless. It does not remove any more details, but it does make it significantly smaller. Imagine if you had just a completely blank white image.
+
+[RawEditor ref:"Huffman1" fullWidth:true imageUrl:"static/images/black.jpg" /]
+
 Downsampling the color components gives about 3 times compression, and throwing away high frequency data gives about 4 times compression. Together these two techniques give a 12x compression. To squeeze the bytes into an even smaller space, there's a few more tricks that can be applied. These aren't unique to JPEG, these are general data compression techniques. This layer is different from everything before in that it's lossless - no data is thrown away here.
+
+[RawEditor ref:"Huffman2" fullWidth:true imageUrl:"static/images/blanket-cat.jpg" /]
 
 **Run-length encoding** takes repeated values and expresses them more concisely. As shown earlier, there are a lot of 0's in the DCT coefficients. This data was "thrown away" by setting it to 0, but a 0 is still a number, and it takes just as much space as any other number. Since there's always going to be a long string of 0's at the end of each block, it can be expressed more efficiently by saying "there are 15 zeroes". This can be communicated using 2 numbers, instead of 15.
 

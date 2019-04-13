@@ -334,17 +334,15 @@ class ImageUtilities {
 				}
 			}
 
-			if (Yblocks.length != editorBlocks.length) {
-				// TODO: Maybe make up the rest by filling with 0's?
-				console.error("Expected", Yblocks.length, "blocks. Found", editorBlocks.length + ".");
-			}
-
-			for (let i = 0; i < editorBlocks.length; i++) {
-				let block = editorBlocks[i];
+			for (let i = 0; i < Yblocks.length; i++) {
+				let block = '';
+				if (i <= editorBlocks.length - 1) block = editorBlocks[i];
 				let Yblock = Yblocks[i];
 				let values = block.trim().split(' ');
 				for (let j = 0; j < 64; j++) {
-					Yblock[j] = Number(values[j])
+					let val = 0;
+					if (j <= values.length - 1) val = Number(values[j]);
+					Yblock[j] = val;
 				}
 			}
 
@@ -457,6 +455,20 @@ class ImageUtilities {
 		return values;
 	}
 
+	setResetText(text) {
+		this.resetText = text;
+		this.resetButton.onclick = function(event) {
+			let instance = event.target.editorInstance;
+			instance.currentValues = instance.finalValues;// Resets the DCT animations
+			instance.editor.setValue(instance.resetText, -1);
+
+			if (window.currentInterval) {
+	          clearInterval(window.currentInterval);
+	          window.currentInterval = undefined;
+	        }
+		}
+	}
+
 	putValuesInEditor(values, linebreakIndex, useForReset) {
 		// Puts the values separated by space, and optionally line breaks, in the editor
 		let text = '';
@@ -470,11 +482,7 @@ class ImageUtilities {
 		}
 
 		if (useForReset) {
-			this.resetText = text;
-			this.resetButton.onclick = function(event) {
-				let instance = event.target.editorInstance;
-				instance.editor.setValue(instance.resetText, -1);
-			}
+			this.setResetText(text);
 		}
 
 		this.editor.setValue(text, -1);

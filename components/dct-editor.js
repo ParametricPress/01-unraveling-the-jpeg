@@ -26,7 +26,7 @@ class DctEditor extends D3Component {
 
         if (props.override != undefined) {
           let values = [];
-          let lines = props.override.split("\n");
+          let lines = props.override.content.split("\n");
           for (let line of lines) {
             values = values.concat(line.trim().split(" "));
           }
