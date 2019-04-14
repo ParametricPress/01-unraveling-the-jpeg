@@ -179,19 +179,19 @@ What you're looking at here is all the areas of the image that have the greatest
 
 These details are what JPEG removes during this compression step. Converting the colors to the DCT coefficients is not a lossy operation. It's the quantization step that's lossy, where values that are either high frequency, or are close to zero, are removed. The more you remove, the greater the compression, and worse the final quality of the image is. This is why the version of the image in the first section that was 57x smaller looked blocky. Each 8 x 8 block was represented by far fewer DCT coefficients.
 
-Just for fun, here's what it looks like using just [EditorLink editor:`refs.DCT3` pattern:"remove-{268}"]24,000 numbers[/EditorLink], or just [EditorLink editor:`refs.DCT3` pattern:"remove-{316}"]5000 numbers[/EditorLink]. Pretty blurry, but almost recognizable!
-
 [aside]
 One really cool thing you can do with this technique is progressively stream images. Imagine seeing a blurry version of the whole image, and slowly seeing it become more and more detailed as the download progresses and more DCT coefficients are available. This is actually possible to do with JPEG, but not as commonly used.
 [/aside]
 
+Just for fun, here's what it looks like using just [EditorLink editor:`refs.DCT3` pattern:"remove-{268}"]24,000 numbers[/EditorLink], or just [EditorLink editor:`refs.DCT3` pattern:"remove-{316}"]5000 numbers[/EditorLink]. Pretty blurry, but almost recognizable!
+
 ## Part 3 - Huffman, Run-Length & Delta Encoding
 
-TODO: Now that we've removed color, and removed high frequency, the final remaining layer is lossless. It does not remove any more details, but it does make it significantly smaller. Imagine if you had just a completely blank white image.
+TODO: Now that we've removed color, and removed high frequency, the final remaining layer is lossless. It does not remove any more details, but it does make it significantly smaller. Imagine if you had just a completely blank white image. Explain run length and delta with this. Then say the last mystery is why the image gets corrupted sometimes. Here it is with the header. Here's where the huffman tables are. End article with the (1), (2), (3) of how to decode it. Anything can be represented by 0's and 1's. 
 
 [RawEditor ref:"Huffman1" fullWidth:true imageUrl:"static/images/black.jpg" /]
 
-Downsampling the color components gives about 3 times compression, and throwing away high frequency data gives about 4 times compression. Together these two techniques give a 12x compression. To squeeze the bytes into an even smaller space, there's a few more tricks that can be applied. These aren't unique to JPEG, these are general data compression techniques. This layer is different from everything before in that it's lossless - no data is thrown away here.
+Subsampling the color components gives about 3 times compression, and throwing away high frequency data gives about 4 times compression. Together these two techniques give a 12x compression. To squeeze the bytes into an even smaller space, there's a few more tricks that can be applied. These aren't unique to JPEG, these are general data compression techniques. This layer is different from everything before in that it's lossless - no data is thrown away here.
 
 [RawEditor ref:"Huffman2" fullWidth:true imageUrl:"static/images/blanket-cat.jpg" /]
 
@@ -256,18 +256,6 @@ This is a fun problem to try and solve with many creative solutions. For example
 
 I hope this makes you appreciate all the work that goes into it viewing even a simple cat picture! But this knowledge is valuable, (myth of jpeg resaving?) or now you can "hide" a JPEG by chopping off the header (which is what facebook does!) or even cooler, change the quantization table so that it looks like a valid JPEG, but it doesn't look like much, unless you use your special quantization table key!
 
-//## (OPTIONAL) Epilogue - Getting a Single Color Out of JPEG
-
-//TODO: If there's no time, we can just cut this. Although it would be really neat as a way to tie it all together.
-
-//I promised we'll understand exactly how to decode a JPEG. Here, if you click on a pixel, it'll:
-
-////* Tell you the Huffman value? Then decode it (can I create a map to get this? Would be hard otherwise given the variable //length encoding)
-//* Tell you the 64 coefficients in the MCU block
-//* Tell you the YCbCr value
-//* Tell you the RGB value
-
-
 [AuthorBio]
 **Omar Shehata** is a graphics programmer at Cesium and an Egyptian citizen in Philadelphia, PA.
 
@@ -275,12 +263,3 @@ Edited by Matthew Conlen and Victoria Uren.
 [/AuthorBio]
 
 [NextArticle fullWidth:true /]
-
-// - Add tabs to the editor
-// - Make reset not change where you scroll
-// -
-// - Make editor link highlight what it changes? And clear highlight on reset or clicking another link
-// - Scrolling issue, when you scroll through the editor it scroll the page
-// - (temporary fix right now) Fix the flicker with "image corrupted when you click on link"
-// - Doing ctrl+h to find and replace will hang the editor
-// - Make fullDct work with colors?
