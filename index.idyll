@@ -54,7 +54,7 @@ These blotches you see — known as [a href:"https://en.wikipedia.org/wiki/Phosp
 
 It’s fun to think about how similar computers are to our brains, but this is also a useful analogy because it illustrates how much the meaning of data — whether carried through a body by nerves, or stored in a computer — relies on how you interpret it. All binary data is made up of ones and zeroes, basic components that could be conveying any kind of information. Your computer often guesses how to interpret it using clues, like the file extension. Here we’ve forced it to interpret it as text, because that’s what a text editor expects.
 
-To understand how a JPEG image is decoded we need to see the original signals themselves — the binary data. This can be done with a [Tooltip content:"You don't necessarily <i>need</i> a hex editor. You can edit the characters as text, save the file, and re-open it as an image just fine. But since our goal is to understand how JPEG stores images, it's helpful to be able to actually read the bytes!"]hex editor[/Tooltip]; or it can be done right here in this webpage! Below is the image next to [Tooltip content:"The only thing omitted here is the header, which is the first ~200 bytes that contain metadata like the width and height of the image. We'll revist this later in the article."]all of its bytes[/Tooltip], represented as decimal numbers. You can make changes to the bytes, and it will re-decode and display the new, edited image as you type.
+To understand how a JPEG image is decoded we need to see the original signals themselves — the binary data. This can be done with a [Tooltip content:"You don't necessarily <i>need</i> a hex editor. You can edit the characters as text, save the file, and re-open it as an image just fine. But since our goal is to understand how JPEG stores images, it's helpful to be able to actually read the bytes!"]hex editor[/Tooltip]; or it can be done right here in this webpage! Below is the image next to [Tooltip content:"The only thing omitted here is the header, which is the first ~500 bytes that contain metadata like the width and height of the image. We'll revist this later in the article."]all of its bytes[/Tooltip], represented as decimal numbers. You can make changes to the bytes, and it will re-decode and display the new, edited image as you type.
 
 [RawEditor ref:"Raw1" fullWidth:true imageUrl:"static/images/blanket-cat.jpg" showHeader:false /]
 
@@ -122,9 +122,9 @@ This means that our eyes are much better at detecting changes in brightness than
 Using the YCbCr colorspace is not unique to JPEG. In fact, it was originally developed in 1938 (TODO MAKE THIS  ALINK https://en.wikipedia.org/wiki/GeorgesValensi ) for TV broadcasts. Not everyone had color TVs, so separating out the color from the luminance allowed everyone to receive the same transmission, and TVs that didn't support color would just use the luminance component.
 [/aside]
 
-This is why removing 1 number from the diagram above completely ruins the color. Here, the [Tooltip content:"In general, JPEG images don't store the components in any particular order. They might be interleaved like in this example, or all the Y components of the image could be stored, followed by all the Cb etc. The header of the JPEG is what tells us how the components are stored."]components are stored[/Tooltip] as **Y Y Y Y Cb Cr**. Removing the first number causes the Cb value to be interpreted as Y, the Cr as Cb, and creates a ripple effect that flips all the colors across the image.
+This is why removing 1 number from the diagram above completely ruins the color. Here, the [Tooltip content:"In general, JPEG images need not store the components in any particular order. They might be interleaved like in this example, or all the Y components of the image could be stored followed by all the Cb etc. The header of the JPEG is what tells us how the components are stored."]components are stored[/Tooltip] as **Y Y Y Y Cb Cr**. Removing the first number causes the Cb value to be interpreted as Y, the Cr as Cb, and creates a ripple effect that flips all the colors across the image.
 
-There's nothing in the JPEG specification that says you must use YCbCr, or that you can't subsample the Y component. You can see for yourself in the diagram below what it would look to subsample each component individually. This is actually the type of experiment conducted to figure out which colors our eyes are most sensitive to.
+There's nothing in the JPEG specification that says you must use YCbCr, or that you can't subsample the Y component. Instead of taking it for granted that it's good to preserve as much of the Y as possible, you can see for yourself in the diagram below what it would look to subsample each component individually.
 
 [var name:"subsamplePercent" value:0.15 /]
 [SubsampleGrid imageUrl:"static/images/blanket-cat-tiny.jpg" subsamplePercent:`subsamplePercent` /]
@@ -187,74 +187,82 @@ Just for fun, here's what it looks like using just [EditorLink editor:`refs.DCT3
 
 ## Part 3 - Huffman, Run-Length & Delta Encoding
 
-TODO: Now that we've removed color, and removed high frequency, the final remaining layer is lossless. It does not remove any more details, but it does make it significantly smaller. Imagine if you had just a completely blank white image. Explain run length and delta with this. Then say the last mystery is why the image gets corrupted sometimes. Here it is with the header. Here's where the huffman tables are. End article with the (1), (2), (3) of how to decode it. Anything can be represented by 0's and 1's. 
+All the compression steps so far have been lossy. This last layer, by contrast, is lossless. It doesn't remove any information, but it does make the filesize significantly smaller.
 
-[RawEditor ref:"Huffman1" fullWidth:true imageUrl:"static/images/black.jpg" /]
+How do you compress something without throwing away any information? Think about how you would represent a simple solid black image. 
 
-Subsampling the color components gives about 3 times compression, and throwing away high frequency data gives about 4 times compression. Together these two techniques give a 12x compression. To squeeze the bytes into an even smaller space, there's a few more tricks that can be applied. These aren't unique to JPEG, these are general data compression techniques. This layer is different from everything before in that it's lossless - no data is thrown away here.
+[RawEditor ref:"Huffman1" fullWidth:true imageUrl:"static/images/black.jpg" showHeader:false /]
 
-[RawEditor ref:"Huffman2" fullWidth:true imageUrl:"static/images/blanket-cat.jpg" /]
+JPEG uses ~5,000 numbers to represent this. But we can do much better. Can you think of an encoding scheme to represent this image using as few bytes as possible?
 
-**Run-length encoding** takes repeated values and expresses them more concisely. As shown earlier, there are a lot of 0's in the DCT coefficients. This data was "thrown away" by setting it to 0, but a 0 is still a number, and it takes just as much space as any other number. Since there's always going to be a long string of 0's at the end of each block, it can be expressed more efficiently by saying "there are 15 zeroes". This can be communicated using 2 numbers, instead of 15.
+The smallest I could think of was 4 bytes: 3 to specify the color and 1 to specify how many pixels have this color. The idea of expressing all repeated values concisely this way is called **run-length encoding**. It's lossless because we can recover the encoded data exactly as it was before. 
 
-**Delta encoding** is when you represent values relative to the previous value instead of as absolute values. Consider the list of numbers below.
+The filesize is much bigger than that with JPEG because remember that in the second layer, the compression is applied to 8 x 8 blocks at a time. So at minimum we'll need 1 DCT coefficient for each 64 pixel block. With run-length encoding, instead of storing 1 DCT coefficient followed by 63 zero's for this image, we can just store one number and say "the rest are zero".
+
+**Delta-encoding** is the reason some numbers change the color for all subsequent pixels. The idea is instead of storing the absolute value of each byte, you can store its value relative to the byte before it. For example, instead of storing:
 
 ```
 12 13 14 16 17 18 19 20
 ```
 
-Delta-encoding starts with 12, but then everything after would be how much you need to add to get the next number. So it would look like:
+You would start with 12, and from there, just store how much you need to add or subtract to get the next number. So that would be:
 
 ```
 12 1 1 2 1 1 1 1
 ```
 
-On its own, it's not helpful. But combined with run-length encoding, it can create runs of repeated values that can then be very efficiently stored. This is especially true for image data where the colors aren't expected to change too much between each 8x8 block.
+This by itself doesn't reduce the number of bytes you have, but you can imagine it can help a lot if you're doing it before applying something like run-length encoding. The first DCT coefficient in each block is delta-encoded. This is because JPEG assumes that the average color (the first DCT coefficient) between blocks won't change too much, even if the details (the 63 other DCT coefficients) do change.
 
-The final step is **Huffman encoding**. This is the reason certain changes to individual bytes completely destroyed the whole image. Huffman encoding is what makes it impossible (or at least incredibly difficult) to decode an image without the header - the first ~200 bytes of any JPEG image that contain metadata like the width and height of the image. It's difficult for the same reason it would be incredibly difficult for you to understand a language I just made up to describe one particular painting. It would likely be very elegant and concise, but probably not very useful for anything other than describing that one, specific, painting.
+This all leaves just one final mystery: how can changing just a single number completely wreck the image? This was not a property of any of the other compression layers. The answer lies in the JPEG header. It's the first ~500 bytes that contain metadata about the image, like its width and height, and has been omitted from all the figures so far.
 
-TODO: Explain how to find the header, and how to change the width and height of the image, as a warm up to this.
+Below is the original image with the header included.
 
-This is, more or less, how Huffman encoding works! This might sound ridiculous, but these numbers are indeed a dictionary for a made up language-of-sorts unique to this particular image!
+[RawEditor ref:"Huffman2" fullWidth:true imageUrl:"static/images/blanket-cat.jpg" /]
 
-// [EditorLink editor:`refs.Huffman1` line:39 search:' 17 ' replace:' 0 '][/EditorLink]
-// [RawEditor ref:"Huffman1" fullWidth:true imageUrl:"static/images/blanket-cat-small.jpg" /]
+Without the header, it's practically impossible (or at least very difficult) to decode the JPEG image. It would be as if I was trying to describe a painting to you, in a language I just made up on the spot, just to describe this one particular painting, and expected you to understand. It's probably going to be a very elegant and concise description, but it would be meaningless to anyone other than me. 
 
-The "255 196" byte pair marks the definition of a Huffman encoding table. It tells us how to read the bytes in the JPEG.
+This may sound ridiculous, but this is exactly what's going on here. Every single JPEG image is encoded with a language-of-sorts that's unique to this particular image. The dictionary you need is stored in the header. This technique is called **Huffman encoding**, and the dictionary is called a Huffman table. This table is marked in the header by two bytes: 255 followed by 196. Each component may have its own Huffman table.
 
-Why would you want to create a unique dictionary for each image like this? Imagine that after all of our compression layers, our final bytes looked like this:
+Changes to these Huffman tables will have the most dramatic effects on any image. Changing [EditorLink editor:`refs.Huffman2` line:15 search:'125 1' replace:'125 12']the second 1 to 12 on line 15[/EditorLink] is a good example. Changing anything after the 125 on that line works too. 
 
-```
-1 1 1 255 1 1
-```
+The Huffman tables have such a dramatic effect on the image because they tell us how to read the individual _bits_. So far we've just been dealing with the binary numbers in decimal. This hides the fact that if you want to store *1* in a byte, it would look like *00000001*, because each byte must have exactly 8 bits, even if it's only using 1.
 
-These are 6 decimal numbers. In binary, these are stored as:
+This is potentially a huge waste of storage if you have a lot of small numbers. Huffman encoding is a technique that allows us to relax this requirement that each number must occupy 8 bits. That means if you see the two bytes:
 
 ```
-00000001 00000001 00000001 11111111 00000001 00000001
+234 115
 ```
 
-That's a total of 48 bits. 8 bits are used per number so that numbers up to 255 can be stored, but that means 7 bits are wasted on almost all of the numbers here. Ideally, every number would be stored in as many bits it needs and no more. So it would be:
+Based on the Huffman table, these could actually be 3 values. To extract them, you'll need to first break them into their individual bits:
 
 ```
-1   1   1   11111111    1   1
-```
+11101010 01110011
+``` 
 
-This is now only 13 bits. This made our data over 3x as small, just by removing unnecessary bits, with no change to the image quality!
+Then follow the table to figure out how to group them. For example, it could be the first 6 bits (111010) which is 58 in decimal, followed by another 5 bits (10011) which is 19 and finally the last 4 bits (0011), which is 3. 
 
-There's one problem though - I deliberately spaced out the numbers when showing it so you'd know where each one starts and ends. But if you were a computed reading the bits of a file, this is what you'd see:
+This is why it's very difficult to make sense of the bytes at this layer of compression. The bytes don't actually represent what they seem to represent. The exact process behind how to follow a Huffman table to extract the values from these bytes is beyond the scope of this article, but since it's not unique to JPEG, [Reference content:"Tom Scott's video on Huffman Encoding https://www.youtube.com/watch?v=JsTptu56GM8, also you'll need the ImpulseAdventure article"]there are many good explanations of it[/Reference].
 
-```
-1111111111111
-```
+[aside]
+One neat trick you can do with this knowledge is to strip out the header from a JPEG image and save it separately. You're effectively making it so only you can read it. Facebook https://code.fb.com/android/the-technology-behind-preview-photos/ actually does this to make JPEG images even smaller. 
 
-These are the 13 bits. Is the first number a 1? Or is it a 11 (a 3 in decimal)? Or is it a 11111111? The needs to be a way to know how many bits to read for each number.
-
-This is a fun problem to try and solve with many creative solutions. For example, you could say you'll put a stop marker in there, maybe it's "0". But then you have to figure out a way to represent "0"! It's outside the scope of this article, but Huffman encoding is the answer. It is the most efficient way of packing a string of bits without using start/stop markers. There are many good explanations on it, one of my favorite is [a href:"https://www.youtube.com/watch?v=JsTptu56GM8"]Tom Scott's video[/a] on how it works for text compression.
+Another thing you can do is change the Huffman table just slightly. To anyone else, it looks like a corrupted image. But only you would know the magic edit needed to fix it.
+[/aside]
 
 [hr/]
 
-I hope this makes you appreciate all the work that goes into it viewing even a simple cat picture! But this knowledge is valuable, (myth of jpeg resaving?) or now you can "hide" a JPEG by chopping off the header (which is what facebook does!) or even cooler, change the quantization table so that it looks like a valid JPEG, but it doesn't look like much, unless you use your special quantization table key!
+So to summarize, what all does it take to decode a JPEG image? You need to:
+
+1. Extract the Huffman table(s) from the header.
+2. Extract the Discrete Cosine Transform coefficients of each component, for each 8 x 8 block, by undoing the Huffman encoding, and the run-length & delta encoding.
+3. Combine the cosine waves based on the coefficients to get back the pixel values for each 8 x 8 block (this is known as the inverse Discrete Cosine Transform).
+4. Scale up the chrominance components if they were subsampled (the header has this information).
+5. Convert the resulting YCbCr of each pixel to RGB.
+6. Display the image!
+
+I hope this makes you appreciate all the work that goes into it viewing even a simple cat picture! 
+
+All the code for this article is open source and public domain. You can find it at X. 
 
 [AuthorBio]
 **Omar Shehata** is a graphics programmer at Cesium and an Egyptian citizen in Philadelphia, PA.
