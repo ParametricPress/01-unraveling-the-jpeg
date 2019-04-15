@@ -8,6 +8,38 @@
 
 .image-editor-container {
   font-family: 'Graphik Web';
+  background: #222;
+  margin: 2em 0;
+}
+
+.image-editor-header {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  color: white;
+  align-items: center;
+  padding: 0.25em 0.5em;
+}
+
+.image-editor-header button {
+  margin: 0;
+  margin-left: 50px;
+  padding: 0.5em 1em;
+}
+
+.image-editor-header > * {
+  flex: 1;
+}
+.image-editor-header > div:nth-of-type(1) {
+  text-align: left;
+}
+.image-editor-header > div:nth-of-type(2) {
+  text-align: center;
+}
+.image-editor-header > div:nth-of-type(3) {
+  text-align: right;
+  font-size: 14px;
+  font-weight: 500;
 }
 
 .image-editor {
@@ -50,6 +82,14 @@ color: #4801FF;
   color: #4801FF;
   text-decoration: underline;
 }
+
+
+.parametric-header-image img {
+  left: -150px;
+  width: 400px;
+}
+
+
 
 @media all and (max-width: 1000px) {
   .idyll-root {

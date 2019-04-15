@@ -71,12 +71,12 @@ let componentMap = {
 }
 
 function subsampleComponent(component, scale, width, height) {
-	let biggerDimension = width > height ? width : height; 
+	let biggerDimension = width > height ? width : height;
 	if (scale > biggerDimension) scale = biggerDimension;
 
 	for (let y = 0; y < height; y+= scale) {
 		for (let x = 0; x < width; x+= scale) {
-			// Compute the average of this block of pixels 
+			// Compute the average of this block of pixels
 			let sum = 0;
 			let count = 0;
 			for (let y_inner = 0; y_inner < scale; y_inner ++) {
@@ -233,7 +233,7 @@ class ImageUtilities {
 				}
 			} else {
 				// TODO make sure to pass the right width and height here if the component is downsampled already?
-				component = subsampleComponent(component, scale, this.decodedImage.width, this.decodedImage.height);	
+				component = subsampleComponent(component, scale, this.decodedImage.width, this.decodedImage.height);
 			}
 
 			this.fillDecodedComponent(componentName, component);
@@ -245,7 +245,7 @@ class ImageUtilities {
 				data: decodedImage.data
 			});
 
-			this.drawDecodedImage();	
+			this.drawDecodedImage();
 		} else if (componentName == 'R' || componentName == 'G' || componentName == 'B') {
 			let decodedImage = this.decodedImage;
 			let dataCopy = decodedImage.data.slice();
@@ -256,7 +256,7 @@ class ImageUtilities {
 					component[i] = 0;
 				}
 			} else {
-				component = subsampleComponent(component, scale, decodedImage.width, decodedImage.height);	
+				component = subsampleComponent(component, scale, decodedImage.width, decodedImage.height);
 			}
 
 			fillPixelData(dataCopy, componentName, component);
@@ -490,23 +490,46 @@ class ImageUtilities {
 
 	createImageEditor(containerElement) {
 
-	    let outerContainer = containerElement;
-	    containerElement = document.createElement('div');
-	    containerElement.className = 'image-editor';
-	    outerContainer.appendChild(containerElement);
+		let outerContainer = containerElement;
+
+		/**
+		 * Control bar section
+		 */
+		let headerContainerElement = document.createElement('div');
+		headerContainerElement.className = 'image-editor-header';
+		outerContainer.appendChild(headerContainerElement);
+
+		// Size counter
+		this.byteCounter = document.createElement('div');
+		this.byteCounter.innerHTML = "Size: 0 kb";
+
+		// Reset button
+		let resetContainer = document.createElement('div');
+		this.resetButton = document.createElement('button');
+		resetContainer.appendChild(this.resetButton);
+		this.resetButton.innerHTML = 'Reset';
+		this.resetButton.editorInstance	= this;
+
+		// Title
+		this.editorTitle = document.createElement('div');
+		this.editorTitle.innerHTML = 'JPEG Editor';
+
+		headerContainerElement.appendChild(resetContainer);
+		headerContainerElement.appendChild(this.editorTitle);
+		headerContainerElement.appendChild(this.byteCounter);
+
+		/**
+		 * Content section
+		 */
+		containerElement = document.createElement('div');
+		containerElement.className = 'image-editor';
+		outerContainer.appendChild(containerElement);
+
 
 		// Create ace editor
 		let editorContainer = document.createElement('div');
 		editorContainer.className = 'byte-editor';
 
-		// Size counter
-		this.byteCounter = document.createElement('span');
-		this.byteCounter.innerHTML = "Size: 0 kb";
-
-		// Reset button
-		this.resetButton = document.createElement('button');
-		this.resetButton.innerHTML = 'Reset';
-    	this.resetButton.editorInstance	= this;
 
 		let editorElement = document.createElement('div');
 		editorContainer.appendChild(editorElement);
@@ -566,8 +589,6 @@ class ImageUtilities {
 		// let clearDiv = document.createElement('div');
 		// clearDiv.style = 'clear:both;';
 		// containerElement.appendChild(clearDiv);
-		outerContainer.appendChild(this.byteCounter);
-		outerContainer.appendChild(this.resetButton);
 	}
 
 	drawRawBytes() {
