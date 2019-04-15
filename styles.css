@@ -45,6 +45,7 @@
 
 .image-editor {
   display: flex;
+  min-height: 400px;
 }
 .byte-editor {
   width: 100%;
