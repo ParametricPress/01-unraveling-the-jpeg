@@ -4,7 +4,6 @@ class RawEditor extends D3Component {
 
   initialize(node, props) {
     // node is a <div> container,
-
     node.className = 'image-editor-container';
     const ImageUtilities = require('./utils/ImageUtilities');
 
@@ -27,7 +26,7 @@ class RawEditor extends D3Component {
         } else {
           imageEditor.putValuesInEditor(body, 16, true);
         }
-        
+
 
         setTimeout(() => imageEditor.editor.resize(), 1500)
       }).catch(e => {

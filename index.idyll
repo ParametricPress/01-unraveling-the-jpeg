@@ -141,7 +141,7 @@ Representing an image in the YCbCr colorspace doesn't in itself make it any smal
 
 This layer of compression is largely the defining feature of JPEG. After the colors are converted to YCbCr, the components are compressed individually, so we can focus on just the Y component for the rest of the article. Here's what the bytes for the Y component look like with this layer applied.
 
-[DctEditor ref:"DCT1" comp:"Y" imageUrl:"static/images/blanket-cat-smallest.jpg" /]
+[DctEditor fullWidth:true ref:"DCT1" comp:"Y" imageUrl:"static/images/blanket-cat-smallest.jpg" /]
 
 [aside]
 Hint: Try clicking on any pixel in the image to see the line in the editor that represents it. Try removing numbers from the end, or adding a few zero's to any individual number to make its effect more obvious.
