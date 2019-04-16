@@ -83,9 +83,9 @@ It's hard to decipher how the image can be reconstructed from these bytes by pla
 
 To give you an idea of the scale of this compression, notice that the image above is represented using exactly 79,819 numbers, which makes it about 79 kilobytes. If it were stored with no compression, 3 numbers would be needed for each pixel — one for each of the red, green and blue components. That would mean a total of 917,700 numbers, or about 917 kilobytes. With JPEG compression, the resulting file is over **ten times smaller**!
 
-In fact, this image can be squeezed into far fewer bytes. Below is the image next to a version of it that was compressed down to just 16 kilobytes, which makes it **fifty seven times smaller** than the uncompressed version would be!
+In fact, this image can be squeezed into far fewer bytes. Below is the image next to a version of it that was compressed down to just 16 kilobytes, which makes it **fifty-seven times smaller** than the uncompressed version would be!
 
-[img src:"static/images/compression-comparison.png"/]
+[img src:"static/images/compression-compare.png"/]
 [br/]
 
 If you look closely you'll see that these images are not identical. Both are JPEG-encoded images, but the one on the right is much smaller in terms of filesize. It also doesn't look as nice (notice how blocky the colors look in the background). The fact that the image changes and loses some detail when we compress it is what makes JPEG a **lossy compression** technique.
@@ -109,8 +109,8 @@ This is because these bytes represent the [EditorLink editor:`refs.Chroma1` patt
 Why not just use RGB? After all, that's how most modern screens work. Your monitor can display any color by turning on red, green and blue lights at various intensities for each pixel. White is displayed by turning on all 3 colors at full brightness, while black is displayed by turning them all off.
 
 [br/]
-[img src:"static/images/BlackWhiteGray_Purdue.gif"/]
-[caption]Credit: http://www.chem.purdue.edu/jmol/cchem/RGBColors/body_rgbcolors.html [/caption]
+[img src:"static/images/pixels.png"/]
+// [caption]Adapted from http://www.chem.purdue.edu/jmol/cchem/RGBColors/body_rgbcolors.html. [/caption]
 [br/]
 
 That's also very similar to how human eyes work. The color receptors in our eyes known as “cones” are split into three types, each of which is mostly sensitive either to red, green, or blue. Rods, the other type of receptor we have in our eyes, can only detect changes in brightness, but they’re far more sensitive, and we have about one hundred and twenty million of them, compared to a measly six million cones.
@@ -118,7 +118,7 @@ That's also very similar to how human eyes work. The color receptors in our eyes
 This means that our eyes are much better at detecting changes in brightness than they are at detecting changes in color. If we can separate the color from the brightness, we can throw away a bit of the color without anyone noticing. This is exactly what chrominance subsampling is. In the example above, each pixel has one Y component, while each 4 pixels share one Cb and one Cr, so the image contains only a quarter as much color information as it originally did.
 
 [aside]
-Using the YCbCr colorspace is not unique to JPEG. In fact, it was originally developed in 1938 (TODO MAKE THIS  ALINK https://en.wikipedia.org/wiki/GeorgesValensi ) for TV broadcasts. Not everyone had color TVs, so separating out the color from the luminance allowed everyone to receive the same transmission, and TVs that didn't support color would just use the luminance component.
+Using the YCbCr colorspace is not unique to JPEG. In fact, it was originally [a href:"https://en.wikipedia.org/wiki/GeorgesValensi"]developed in 1938 for TV broadcasts[/a]. Not everyone had color TVs, so separating out the color from the luminance allowed everyone to receive the same transmission, and TVs that didn't support color would just use the luminance component.
 [/aside]
 
 This is why removing 1 number from the diagram above completely ruins the color. Here, the [Tooltip content:"In general, JPEG images need not store the components in any particular order. They might be interleaved like in this example, or all the Y components of the image could be stored followed by all the Cb etc. The header of the JPEG is what tells us how the components are stored."]components are stored[/Tooltip] as **Y Y Y Y Cb Cr**. Removing the first number causes the Cb value to be interpreted as Y, the Cr as Cb, and creates a ripple effect that flips all the colors across the image.
@@ -126,8 +126,14 @@ This is why removing 1 number from the diagram above completely ruins the color.
 There's nothing in the JPEG specification that says you must use YCbCr, or that you can't subsample the Y component. Instead of taking it for granted that it's good to preserve as much of the Y as possible, you can see for yourself in the diagram below what it would look to subsample each component individually.
 
 [var name:"subsamplePercent" value:0.15 /]
+
 [SubsampleGrid imageUrl:"static/images/blanket-cat-tiny.jpg" subsamplePercent:`subsamplePercent ` /]
+[div className:"subsample-controls" ]
+Subsample percent: [Display value:subsamplePercent format:".0%" /]
 [Range value:subsamplePercent min:0 max:1 step:0.05 /]
+[br/]
+Move slider to adjust the amount of subsampling applied.
+[/div]
 
 [aside]
 Removing a bit of blue isn't as noticeable as removing red or green. This is because of the six million cones you have in your eyes, about 64% are most sensitive to red, 32% to green, and only 2% to blue.

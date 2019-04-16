@@ -48,7 +48,7 @@ class SubsampleGrid extends D3Component {
     // node is a <div> container,
 
     const ImageUtilities = require('./utils/ImageUtilities');
-    node.className = 'image-editor-container';
+    node.className = 'image-editor-container subsample-grid';
     let imageEditor = new ImageUtilities({
       url: props.imageUrl,
       editMode: 'subsample'
@@ -66,7 +66,7 @@ class SubsampleGrid extends D3Component {
         container.className = 'subsample-container row';
         let html = `<div class="subsample-container row">
     <div class="column">
-      <div id="R" class="subsample-image"><canvas></canvas><p>Red</p></div> 
+      <div id="R" class="subsample-image"><canvas></canvas><p>Red</p></div>
       <div id="Y" class="subsample-image"><canvas></canvas><p>Luminance</p></div>
     </div>
     <div class="column">
@@ -96,7 +96,7 @@ class SubsampleGrid extends D3Component {
   }
 
   update(props, oldProps) {
-    let subsample = props.subsamplePercent; 
+    let subsample = props.subsamplePercent;
     let scaleArray = [1, 2, 4, 6, 8, 10, 12, 14, 16, 20, 30, 40, 50, 80, 100, 0];
     let scale = scaleArray[0 | (subsample * (scaleArray.length - 1))];
     console.log(scale);

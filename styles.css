@@ -146,3 +146,19 @@ color: #4801FF;
 .subsample-image canvas {
   width: 200px;
 }
+
+.subsample-grid {
+  background: none;
+}
+
+.subsample-controls {
+  font-family: 'Graphik Web';
+  font-size: 14px;
+  text-align: center;
+  line-height: 1.1;
+  margin-bottom: 2em;
+}
+.subsample-controls input {
+  display: block;
+  margin: 1em auto;
+}
