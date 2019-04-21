@@ -1,4 +1,4 @@
-[meta title:"Unraveling The JPEG" description:"The JPEG is a common element of our digital lives, but behind the veil of familiarity lie algorithms that allow images to be shared quickly and reliably online. The secret is to understand what details human eyes perceive. Let's see what our eyes can't see!" /]
+[meta title:"Unraveling The JPEG" description:"JPEG images are everywhere in our digital lives, but behind the veil of familiarity lie algorithms that remove details that are imperceptible to the human eye. This produces the highest visual quality with the smallest file size — but what does that look like? Let's see what our eyes can't see!" /]
 
 [Nav fullWidth:true /]
 
@@ -6,7 +6,7 @@
   title:`["Unraveling", "the JPEG"]`
   longTitle:`["Unraveling", "the JPEG"]`
   date:"April 15, 2019"
-  dek:"The JPEG is a common element of our digital lives, but behind the veil of familiarity lie algorithms that allow images to be shared quickly and reliably online. The secret is to understand what details human eyes perceive. Let's see what our eyes can't see!"
+  dek:"JPEG images are everywhere in our digital lives, but behind the veil of familiarity lie algorithms that remove details that are imperceptible to the human eye. This produces the highest visual quality with the smallest file size — but what does that look like? Let's see what our eyes can't see!"
   fullWidth:true
   headerImage:"static/images/luxury.png"
   authors:`[{
