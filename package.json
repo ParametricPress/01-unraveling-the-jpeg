@@ -22,7 +22,8 @@
     "jpeg-js": "github:OmarShehata/jpeg-js",
     "parametric-components": "^1.0.22",
     "parametric-styles": "^1.0.15",
-    "react-image": "^2.0.0"
+    "react-image": "^2.0.0",
+    "whatwg-fetch": "^3.0.0"
   },
   "devDependencies": {
     "gh-pages": "^0.12.0"

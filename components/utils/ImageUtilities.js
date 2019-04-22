@@ -1,4 +1,4 @@
-
+import 'whatwg-fetch';
 var ace = require('brace');
 var {fastDctLee} = require('./FastDct');
 require('brace/mode/assembly_x86');
@@ -173,29 +173,22 @@ class ImageUtilities {
 
 		// This article allows you to override the given image with a query param
 		// unless specifically instructed not to by passing the `options.isUrlExempt`.
-		let urlParams = new URLSearchParams(window.location.search);
+		let hasImageSrc = window.location.search.indexOf("?imageSrc") != -1;
 		let loadFromUrl = false;
-		if (urlParams.has('imageSrc') && options.isUrlExempt != true) {
+		if (hasImageSrc && options.isUrlExempt != true) {
 			loadFromUrl = true;
 			let maxWidth = 400;
 			if (options.maxWidth != undefined) {
 				maxWidth = options.maxWidth;
 			}
-
-			resizeImage(urlParams.get('imageSrc'), maxWidth, function(canvas) {
+			let imageSrc = window.location.search.replace("?imageSrc=","");
+			resizeImage(imageSrc, maxWidth, function(canvas) {
 				canvas.toBlob(function(blob) {
 					return loadImageFromResponse(new Response(blob))
 						.then(function() {
 							options.callback(that);
 						})
 				}, 'image/jpeg', 0.95);
-
-				// var url = canvas.toDataURL('image/jpeg');
-				// var img = new Image(); 
-				// img.src = url;
-				// img.onload = function() {
-				// 	document.querySelector("#idyll-mount > div > div > div:nth-child(8) > p:nth-child(3)").appendChild(img)
-				// }
 			})
 		}
 
