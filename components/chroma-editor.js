@@ -10,7 +10,7 @@ class ChromaEditor extends D3Component {
     let that = this;
 
     function done(imageEditor) {
-        imageEditor.createImageEditor(node);
+        imageEditor.createImageEditor(node, 'Chroma Editor');
 
         // This assumes Y has a scale 1, and Cb and Cr have the same scale.
         // Interleave the colors based on the h and v of each component

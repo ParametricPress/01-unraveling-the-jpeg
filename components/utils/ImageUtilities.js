@@ -549,7 +549,7 @@ class ImageUtilities {
 		this.editor.setValue(text, -1);
 	}
 
-	createImageEditor(containerElement) {
+	createImageEditor(containerElement, title) {
 
 		let outerContainer = containerElement;
 
@@ -573,7 +573,8 @@ class ImageUtilities {
 
 		// Title
 		this.editorTitle = document.createElement('div');
-		this.editorTitle.innerHTML = 'JPEG Editor';
+		if (title == undefined) title = 'JPEG Editor';
+		this.editorTitle.innerHTML = title;
 
 		headerContainerElement.appendChild(resetContainer);
 		headerContainerElement.appendChild(this.editorTitle);

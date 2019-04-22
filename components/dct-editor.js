@@ -17,7 +17,7 @@ class DctEditor extends D3Component {
     let that = this;
 
     function done(imageEditor) {
-      imageEditor.createImageEditor(node);
+      imageEditor.createImageEditor(node, 'DCT Editor');
 
       if (props.override != undefined) {
         let values = [];
