@@ -22,7 +22,7 @@ It's easy to take for granted that you can send a picture to a friend without wo
 
 JPEG, the group of people, created JPEG, a standard for digital image compression, in 1992. Anyone who's ever used the internet has probably seen a JPEG-encoded image. It is by far the most ubiquitous way of encoding, sending and storing images. From web pages to email to social media, JPEGs are used billions of times a day — almost every time we view or send images online. Without JPEG, the web would be a little less colorful, a lot slower, and probably have far fewer cat pictures!
 
-This article is about how to decode a JPEG image. In other words, it's about what it takes to convert the compressed data stored on your computer to the image that appears on the screen. It's worth learning about not just because it's important to understand the technology we all use everyday, but as we unravel the layers of compression, we learn a bit about perception and vision, and about what details our eyes are most sensitive to.
+This article is about how to decode a JPEG image. In other words, it's about what it takes to convert the compressed data stored on your computer to the image that appears on the screen. It's worth learning about not just because it's important to understand the technology we all use everyday, but also because, as we unravel the layers of compression, we learn a bit about perception and vision, and about what details our eyes are most sensitive to.
 
 It's also just a lot of fun to play with images this way.
 
@@ -36,14 +36,14 @@ It's also just a lot of fun to play with images this way.
 
 ## Peering Inside a JPEG
 
-Everything on a computer is stored as a series of binary numbers. Typically, these bits, the zeroes and ones, are arranged in groups of eight, known as bytes. When you open a JPEG image on your computer, something (the browser, your operating system, or something else) has to decode the bytes to recover the original image as a list of colors that can then be displayed.
+Everything on a computer is stored as a series of binary numbers. Typically, these bits, the zeros and ones, are arranged in groups of eight, known as bytes. When you open a JPEG image on your computer, something (the browser, your operating system, or something else) has to decode the bytes to recover the original image as a list of colors that can then be displayed.
 
 If you download [Reference content:"The adorable kitten image used in this article was taken by <a href='https://unsplash.com/photos/NodtnCsLdTE'>Mikhail Vasilyev on Unplash</a>"]that picture of the cat[/Reference] and open it using any text editor, you'll see a bunch of garbled characters.
 
 // [Right fullWidth:true]
   [img src:"static/images/blanket-cat-notepad.png"/]
   [caption]
-    Here I'm using [Notepad++](https://notepad-plus-plus.org/) to edit the file, since common text editors like Windows' Notepad will change the file's binary contents when you save it so it's no longer a valid JPEG.
+    Here I'm using [Notepad++](https://notepad-plus-plus.org/) to look at the image file, since common text editors like Windows' Notepad will change the file's binary contents when you save it so it's no longer a valid JPEG.
   [/caption]
 // [/Right]
 
@@ -51,11 +51,11 @@ If you download [Reference content:"The adorable kitten image used in this artic
 
 By opening an image in a text editor, you’ve confused the computer, in the same way you confuse your brain when you rub your eyes too hard and start to see blotches of dimness and color!
 
-These blotches you see — known as [a href:"https://en.wikipedia.org/wiki/Phosphene"]“phosphenes”[/a] — don't come from any light stimulus, nor are they hallucinations made up in your mind. They arise because your brain assumes that any electrical signal arriving through the nerves in your eye is conveying light information. The brain needs to make this assumption because there’s no way to know whether a given signal is sound, sight, or something else. All the nerves in your body carry exactly the same type of electrical pulse. When you apply pressure by rubbing your eyes, you’re sending non-visual signals that trigger the receptors in your eye, which your brain interprets — incorrectly, in this case — as vision. You can literally see the pressure!
+These blotches you see — known as [a href:"https://en.wikipedia.org/wiki/Phosphene" target:"_blank"]“phosphenes”[/a] — don't come from any light stimulus, nor are they hallucinations made up in your mind. They arise because your brain assumes that any electrical signal arriving through the nerves in your eye is conveying light information. The brain needs to make this assumption because there’s no way to know whether a given signal is sound, sight, or something else. All the nerves in your body carry exactly the same type of electrical pulse. When you apply pressure by rubbing your eyes, you’re sending non-visual signals that trigger the receptors in your eye, which your brain interprets — incorrectly, in this case — as vision. You can literally see the pressure!
 
-It’s fun to think about how similar computers are to our brains, but this is also a useful analogy because it illustrates how much the meaning of data — whether carried through a body by nerves, or stored in a computer — relies on how you interpret it. All binary data is made up of ones and zeroes, basic components that could be conveying any kind of information. Your computer often guesses how to interpret it using clues, like the file extension. Here we’ve forced it to interpret it as text, because that’s what a text editor expects.
+It’s fun to think about how similar computers are to our brains, but this is also a useful analogy because it illustrates how much the meaning of data — whether carried through a body by nerves or stored in a computer — relies on how you interpret it. All binary data is made up of ones and zeros, basic components that could be conveying any kind of information. Your computer often guesses how to interpret it using clues, like the file extension. Here we’ve forced it to interpret it as text, because that’s what a text editor expects.
 
-To understand how a JPEG image is decoded we need to see the original signals themselves — the binary data. This can be done with a [Tooltip content:"You don't necessarily <i>need</i> a hex editor. You can edit the characters as text, save the file, and re-open it as an image just fine. But since our goal is to understand how JPEG stores images, it's helpful to be able to actually read the bytes!"]hex editor[/Tooltip]; or it can be done right here in this webpage! Below is the image next to [Tooltip content:"The only thing omitted here is the header, which is the first ~500 bytes that contain metadata like the width and height of the image. We'll revist this later in the article."]all of its bytes[/Tooltip], represented as decimal numbers. You can make changes to the bytes, and it will re-decode and display the new, edited image as you type.
+To understand how a JPEG image is decoded we need to see the original signals themselves — the binary data. This can be done with a [Tooltip content:"You don't necessarily <i>need</i> a hex editor. You can edit the characters as text, save the file, and re-open it as an image just fine. But since our goal is to understand how JPEG stores images, it's helpful to be able to actually read the bytes!"]hex editor[/Tooltip], or it can be done right here in this webpage! Below is the image next to [Tooltip content:"The only thing omitted here is the header, which is the first ~500 bytes that contain metadata like the width and height of the image. We'll revist this later in the article."]all of its bytes[/Tooltip], represented as decimal numbers. You can make changes to the bytes, and it will re-decode and display the new, edited image as you type.
 
 [RawEditor ref:"Raw1" fullWidth:true imageUrl:"static/images/blanket-cat.jpg" showHeader:false maxWidth:700 /]
 
@@ -67,7 +67,7 @@ There's a lot you can learn just from playing around with this editor. For examp
 
 Something strange in the example above is that changing some numbers doesn't seem to impact the image at all, while [EditorLink editor:`refs.Raw1` line:1 search:' 17 ' replace:' 0 ']setting the 17 on line 1 to 0[/EditorLink] completely ruins the image! Other actions, like [EditorLink editor:`refs.Raw1` line:1988 search:' 7 ' replace:' 254 ']setting the 7 on line 1988 to 254[/EditorLink] change the color, but only for subsequent pixels.
 
-Perhaps what's most peculiar is that some numbers change not just the color but the shape of the image as well. Change the [EditorLink editor:`refs.Raw1` line:12 search:' 70 ' replace:' 2 ']70 in line 12 to 2[/EditorLink] and look at the top row of the image to see what I mean. You'll always find these mysterious checkboard patterns lurking regardless of what JPEG you're using.
+Perhaps what's most peculiar is that some numbers change not just the color but the shape of the image as well. Change the [EditorLink editor:`refs.Raw1` line:12 search:' 70 ' replace:' 2 ']70 in line 12 to 2[/EditorLink] and look at the top row of the image to see what I mean. No matter what JPEG image you're editing, these mysterious checkerboard patterns can always be found.
 
 It's hard to decipher how the image can be reconstructed from these bytes by playing around like this, because JPEG compression is actually composed of 3 different compression techniques, which are applied in successive layers. We'll look at each of these layers of compression separately to unravel this mysterious behavior we're seeing.
 
@@ -88,7 +88,7 @@ In fact, this image can be squeezed into far fewer bytes. Below is the image nex
 [img src:"static/images/compression-compare.png"/]
 [br/]
 
-If you look closely you'll see that these images are not identical. Both are JPEG-encoded images, but the one on the right is much smaller in terms of filesize. It also doesn't look as nice (notice how blocky the colors look in the background). The fact that the image changes and loses some detail when we compress it is what makes JPEG a **lossy compression** technique.
+If you look closely you'll see that these images are not identical. Both are JPEG-encoded images, but the one on the right is much smaller in terms of file size. It also doesn't look as nice (notice how blocky the colors look in the background). The fact that the image changes and loses some detail when we compress it is why JPEG is known as a “lossy” compression technique.
 
 ## Part 1 - Chrominance Subsampling
 
@@ -113,15 +113,15 @@ Why not just use RGB? After all, that's how most modern screens work. Your monit
 // [caption]Adapted from http://www.chem.purdue.edu/jmol/cchem/RGBColors/body_rgbcolors.html. [/caption]
 [br/]
 
-That's also very similar to how human eyes work. The color receptors in our eyes known as “cones” are split into three types, each of which is mostly sensitive either to red, green, or blue. Rods, the other type of receptor we have in our eyes, can only detect changes in brightness, but they’re far more sensitive, and we have about one hundred and twenty million of them, compared to a measly six million cones.
+That's also very similar to how human eyes work. The color receptors in our eyes known as “cones” are split into three types, each of which is mostly sensitive either to red, green, or blue. Rods, the other type of receptor we have in our eyes, can only detect changes in brightness, but they’re far more sensitive. We have about one hundred and twenty million of rods in our eyes, compared to a measly six million cones.
 
-This means that our eyes are much better at detecting changes in brightness than they are at detecting changes in color. If we can separate the color from the brightness, we can throw away a bit of the color without anyone noticing. This is exactly what chrominance subsampling is. In the example above, each pixel has one Y component, while each 4 pixels share one Cb and one Cr, so the image contains only a quarter as much color information as it originally did.
+This means that our eyes are much better at detecting changes in brightness than they are at detecting changes in color. If we can separate the color from the brightness, we can throw away a bit of the color without anyone noticing. This is exactly what chrominance subsampling is. In the example above, each pixel has exactly one Y component, while each discrete group of four pixels has exactly one Cb and one Cr component. So the image contains only a quarter as much color information as it originally did.
 
 [aside]
 Using the YCbCr colorspace is not unique to JPEG. In fact, it was originally [a href:"https://en.wikipedia.org/wiki/GeorgesValensi"]developed in 1938 for TV broadcasts[/a]. Not everyone had color TVs, so separating out the color from the luminance allowed everyone to receive the same transmission, and TVs that didn't support color would just use the luminance component.
 [/aside]
 
-This is why removing 1 number from the diagram above completely ruins the color. Here, the [Tooltip content:"In general, JPEG images need not store the components in any particular order. They might be interleaved like in this example, or all the Y components of the image could be stored followed by all the Cb etc. The header of the JPEG is what tells us how the components are stored."]components are stored[/Tooltip] as **Y Y Y Y Cb Cr**. Removing the first number causes the Cb value to be interpreted as Y, the Cr as Cb, and creates a ripple effect that flips all the colors across the image.
+This is why removing one number from the editor above completely ruins the color. Here, the [Tooltip content:"In general, JPEG images need not store the components in any particular order. They might be interleaved like in this example, or all the Y components of the image could be stored followed by all the Cb etc. The header of the JPEG is what tells us how the components are stored."]components are stored[/Tooltip] as **Y Y Y Y Cb Cr**. Removing the first number causes the Cb value to be interpreted as Y, the Cr as Cb, and creates a ripple effect that flips all the colors across the image.
 
 There's nothing in the JPEG specification that says you must use YCbCr, or that you can't subsample the Y component. Instead of taking it for granted that it's good to preserve as much of the Y as possible, you can see for yourself in the diagram below what it would look to subsample each component individually.
 
@@ -150,12 +150,12 @@ This layer of compression is largely the defining feature of JPEG. After the col
 [DctEditor fullWidth:true ref:"DCT1" comp:"Y" imageUrl:"static/images/blanket-cat-smallest.jpg" maxWidth:400 /]
 
 [aside]
-Hint: Try clicking on any pixel in the image to see the line in the editor that represents it. Try removing numbers from the end, or adding a few zero's to any individual number to make its effect more obvious.
+Hint: Try clicking on any pixel in the image to see the line in the editor that represents it. Try removing numbers from the end, or adding a few zeros to any individual number to make its effect more obvious.
 [/aside]
 
 At first glance, this seems like very poor compression. There are 100,000 pixels in this image, and yet it takes 102,400 numbers to represent the luminance of each pixel — that's worse than not compressing it at all!
 
-But notice that most of these values are 0. In fact, [EditorLink editor:`refs.DCT1` pattern:"remove-zeros"]all of these zeros can be removed[/EditorLink] with no change to the image. This leaves only ~23,000 numbers, which makes it about 4x smaller!
+But notice that most of these values are 0. In fact, [EditorLink editor:`refs.DCT1` pattern:"remove-zeros"]all of these trailing zeros can be removed[/EditorLink] with no change to the image. This leaves only ~23,000 numbers, which makes it about 4x smaller!
 
 In this layer lies the secret to the checkerboard patterns. Unlike the other effects we've seen, the appearance of these patterns is not a glitch. They are in fact the building blocks of the entire image! Every line in the editor above contains exactly 64 numbers, known as the Discrete Cosine Transform (DCT) coefficients, which correspond to intensities of 64 unique patterns.
 
@@ -168,7 +168,7 @@ You can see each of these patterns by zeroing out all but one of the numbers in 
 
 These patterns are special because they form a basis for 8x8 images. If you're not familiar with linear algebra, what that means is that any 8x8 image, anything at all that you can imagine, can be made out of these specific 64 patterns. The Discrete Cosine Transform is the process of converting the colors of an image to these 64 coefficients. Here's [EditorLink editor:`refs.DCT2` pattern:"animate-DCT" DCT:DCT-circle]how you would form a circle[/EditorLink] by combining these patterns, or [EditorLink editor:`refs.DCT2` pattern:"animate-DCT" DCT:DCT-eye]the cat's face[/EditorLink]. You can [EditorLink editor:`refs.DCT2` pattern:"animate-DCT" DCT:DCT-grid]click here to go back to the grid of 64 patterns[/EditorLink].
 
-It seems like magic to say that any image can be represented using 64 specific patterns. But this is the same thing as saying any location on the Earth can be represented using only two numbers: longitude and latitude. The surface of the Earth is two-dimensional, so two numbers are needed. An 8 x 8 image is sixty-four-dimensional, so we need sixty-four numbers.
+It seems like magic to say that any image can be represented using 64 specific patterns. But this is the same thing as saying any location on the Earth can be represented using only two numbers: longitude and latitude. We often treat the surface of the Earth as two-dimensional, so only two numbers are needed. An 8 x 8 image is sixty-four-dimensional, so we need sixty-four numbers.
 
 In terms of compression, it’s not obvious how this helps us. If we need sixty-four numbers to represent an 8 x 8 image, why is this better than storing the sixty-four luminance components? For the same reason we converted from the three numbers of RGB to the three numbers of YCbCr: it allows us to remove detail that’s less noticeable.
 
@@ -192,7 +192,7 @@ Just for fun, here's what it looks like using just [EditorLink editor:`refs.DCT3
 
 ## Part 3 - Huffman, Run-Length & Delta Encoding
 
-All the compression steps so far have been lossy. This last layer, by contrast, is lossless. It doesn't remove any information, but it does make the filesize significantly smaller.
+All the compression steps so far have been lossy. This last layer, by contrast, is lossless. It doesn't remove any information, but it does make the file size significantly smaller.
 
 How do you compress something without throwing away any information? Think about how you would represent a simple solid black image.
 
@@ -202,7 +202,7 @@ JPEG uses ~5,000 numbers to represent this. But we can do much better. Can you t
 
 The smallest I could think of was 4 bytes: 3 to specify the color and 1 to specify how many pixels have this color. The idea of expressing all repeated values concisely this way is called **run-length encoding**. It's lossless because we can recover the encoded data exactly as it was before.
 
-The filesize is much bigger than that with JPEG because remember that in the second layer, the compression is applied to 8 x 8 blocks at a time. So at minimum we'll need 1 DCT coefficient for each 64 pixel block. With run-length encoding, instead of storing 1 DCT coefficient followed by 63 zero's for this image, we can just store one number and say "the rest are zero".
+The file size is much bigger than that with JPEG because in the second layer, the compression is applied to 8 x 8 blocks at a time. So at minimum we'll need one DCT coefficient for each 64 pixel block. With run-length encoding, instead of storing one DCT coefficient followed by 63 zeros for this image, we can just store one number and say "the rest are zero".
 
 **Delta-encoding** is the reason some numbers change the color for all subsequent pixels. The idea is instead of storing the absolute value of each byte, you can store its value relative to the byte before it. For example, instead of storing:
 
@@ -265,7 +265,7 @@ So to summarize, what all does it take to decode a JPEG image? You need to:
 5. Convert the resulting YCbCr of each pixel to RGB.
 6. Display the image!
 
-I hope this makes you appreciate all the work that goes into it viewing even a simple cat picture!
+I hope this makes you appreciate all the work that goes into viewing even a simple cat picture!
 
 All the code for this article is open source and public domain. You can find it at X.
 
