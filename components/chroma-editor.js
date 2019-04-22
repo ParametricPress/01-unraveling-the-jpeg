@@ -7,13 +7,9 @@ class ChromaEditor extends D3Component {
 
     const ImageUtilities = require('./utils/ImageUtilities');
     node.className = 'image-editor-container';
-    let imageEditor = new ImageUtilities({
-      url: props.imageUrl,
-      corruptedImage: props.corruptedImage,
-      editMode: 'chroma'
-    });
-    imageEditor.readyPromise
-      .then(function() {
+    let that = this;
+
+    function done(imageEditor) {
         imageEditor.createImageEditor(node);
 
         // This assumes Y has a scale 1, and Cb and Cr have the same scale.
@@ -49,10 +45,18 @@ class ChromaEditor extends D3Component {
         imageEditor.putValuesInEditor(colors, samplesPerLine, true);
 
         setTimeout(() => imageEditor.editor.resize(), 1500)
-      }).catch(e => {
-        console.log(e);
-      });
-      this.imageEditor = imageEditor;
+        that.imageEditor = imageEditor;
+    }
+
+    let imageEditor = new ImageUtilities({
+      url: props.imageUrl,
+      corruptedImage: props.corruptedImage,
+      editMode: 'chroma',
+      maxWidth: props.maxWidth,
+      isUrlExempt: props.isUrlExempt,
+      callback: done
+    });
+      
   }
 
   update(props, oldProps) {

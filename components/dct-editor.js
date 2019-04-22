@@ -14,38 +14,40 @@ class DctEditor extends D3Component {
     if (props.comp == 'Cb') editMode = 'dctBlue';
     if (props.comp == 'Cr') editMode = 'dctRed';
 
-    let imageEditor = new ImageUtilities({
+    let that = this;
+
+    function done(imageEditor) {
+      imageEditor.createImageEditor(node);
+
+      if (props.override != undefined) {
+        let values = [];
+        let lines = props.override.content.split("\n");
+        for (let line of lines) {
+          values = values.concat(line.trim().split(" "));
+        }
+        imageEditor.putValuesInEditor(values, 64, true);
+
+      } else {
+        // Get the DCT coefficients out.
+        let dctCoefficients = imageEditor.getDctComponent(comp);
+
+        // Put each block in a line, since each block has 64 numbers.
+        imageEditor.putValuesInEditor(dctCoefficients, 64, true);
+      }
+      
+      that.imageEditor = imageEditor;
+      setTimeout(() => imageEditor.editor.resize(), 1500)
+    }
+
+    new ImageUtilities({
       url: props.imageUrl,
       corruptedImage: props.corruptedImage,
       highlightPixelOnClick: true,
-      editMode: editMode
+      editMode: editMode,
+      maxWidth: props.maxWidth,
+      isUrlExempt: props.isUrlExempt,
+      callback: done
     });
-    imageEditor.readyPromise
-      .then(function() {
-        imageEditor.createImageEditor(node);
-
-        if (props.override != undefined) {
-          let values = [];
-          let lines = props.override.content.split("\n");
-          for (let line of lines) {
-            values = values.concat(line.trim().split(" "));
-          }
-          imageEditor.putValuesInEditor(values, 64, true);
-
-        } else {
-          // Get the DCT coefficients out.
-          let dctCoefficients = imageEditor.getDctComponent(comp);
-
-          // Put each block in a line, since each block has 64 numbers.
-          imageEditor.putValuesInEditor(dctCoefficients, 64, true);
-        }
-        
-
-        setTimeout(() => imageEditor.editor.resize(), 1500)
-      }).catch(e => {
-        console.log(e);
-      });
-      this.imageEditor = imageEditor;
   }
 
   update(props, oldProps) {

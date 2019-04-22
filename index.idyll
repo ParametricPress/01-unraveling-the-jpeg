@@ -18,11 +18,11 @@
   source:""
 /]
 
-It's easy to take it for granted that you can send a picture to a friend without worrying about what device, browser, or operating system they’re using, but things weren’t always this way. By the early 1980's, computers could store and display digital images, but there were many competing ideas about how best to do that, so you couldn't just send an image from one computer to another and expect it to work. To solve this problem, the Joint Photographic Experts Group (JPEG), a committee of experts from all over the world, was established in 1986 as a joint effort by the ISO and the IEC — two international standards organizations headquartered in Geneva, Switzerland.
+It's easy to take for granted that you can send a picture to a friend without worrying about what device, browser, or operating system they’re using, but things weren’t always this way. By the early 1980's, computers could store and display digital images, but there were many competing ideas about how best to do that, so you couldn't just send an image from one computer to another and expect it to work. To solve this problem, the Joint Photographic Experts Group (JPEG), a committee of experts from all over the world, was established in 1986 as a joint effort by the ISO (International Organization for Standardization) and the IEC (International Electrotechnical Commission) — two international standards organizations headquartered in Geneva, Switzerland.
 
-JPEG, the group of people, created JPEG, a standard for digital image compression in 1992. Anyone who's ever used the internet has probably seen a JPEG-encoded image. It is by far the most ubiquitous way of encoding, sending and storing images. From web pages to email to social media, JPEGs are used billions of times a day — almost every time we view or send images online. Without JPEG, the web would be a little less colorful, a lot slower, and probably have far fewer cat pictures!
+JPEG, the group of people, created JPEG, a standard for digital image compression, in 1992. Anyone who's ever used the internet has probably seen a JPEG-encoded image. It is by far the most ubiquitous way of encoding, sending and storing images. From web pages to email to social media, JPEGs are used billions of times a day — almost every time we view or send images online. Without JPEG, the web would be a little less colorful, a lot slower, and probably have far fewer cat pictures!
 
-This article is about how to decode a JPEG image. Or in other words, it's about what it takes to convert the compressed data stored on your computer to the image that appears on the screen. It's worth learning about not just because it's important to understand the technology we all use everyday, but as we unravel the layers of compression, we learn a bit about perception and vision, and about what details our eyes are most sensitive to.
+This article is about how to decode a JPEG image. In other words, it's about what it takes to convert the compressed data stored on your computer to the image that appears on the screen. It's worth learning about not just because it's important to understand the technology we all use everyday, but as we unravel the layers of compression, we learn a bit about perception and vision, and about what details our eyes are most sensitive to.
 
 It's also just a lot of fun to play with images this way.
 
@@ -57,7 +57,7 @@ It’s fun to think about how similar computers are to our brains, but this is a
 
 To understand how a JPEG image is decoded we need to see the original signals themselves — the binary data. This can be done with a [Tooltip content:"You don't necessarily <i>need</i> a hex editor. You can edit the characters as text, save the file, and re-open it as an image just fine. But since our goal is to understand how JPEG stores images, it's helpful to be able to actually read the bytes!"]hex editor[/Tooltip]; or it can be done right here in this webpage! Below is the image next to [Tooltip content:"The only thing omitted here is the header, which is the first ~500 bytes that contain metadata like the width and height of the image. We'll revist this later in the article."]all of its bytes[/Tooltip], represented as decimal numbers. You can make changes to the bytes, and it will re-decode and display the new, edited image as you type.
 
-[RawEditor ref:"Raw1" fullWidth:true imageUrl:"static/images/blanket-cat.jpg" showHeader:false /]
+[RawEditor ref:"Raw1" fullWidth:true imageUrl:"static/images/blanket-cat.jpg" showHeader:false maxWidth:700 /]
 
 [aside]
 _Hint: try scrolling down and removing a few chunks. Don't worry, you can always reset the image back to the original!_[br/]
@@ -94,7 +94,7 @@ If you look closely you'll see that these images are not identical. Both are JPE
 
 Here's the image with just the first layer of compression applied.
 
-[ChromaEditor fullWidth:true ref:"Chroma1" imageUrl:"static/images/blanket-cat-smallest.jpg" /]
+[ChromaEditor fullWidth:true ref:"Chroma1" imageUrl:"static/images/blanket-cat-smallest.jpg" maxWidth:400 /]
 
 [aside]
 _Hint: Notice that removing one number ruins all the colors. But removing exactly 6, or any multiple of 6, has a minimal effect on the image._[br/]
@@ -127,7 +127,7 @@ There's nothing in the JPEG specification that says you must use YCbCr, or that 
 
 [var name:"subsamplePercent" value:0.15 /]
 
-[SubsampleGrid imageUrl:"static/images/blanket-cat-tiny.jpg" subsamplePercent:`subsamplePercent ` /]
+[SubsampleGrid imageUrl:"static/images/blanket-cat-tiny.jpg" subsamplePercent:`subsamplePercent ` maxWidth:200 /]
 [div className:"subsample-controls" ]
 Subsample percent: [Display value:subsamplePercent format:".0%" /]
 [Range value:subsamplePercent min:0 max:1 step:0.05 /]
@@ -147,7 +147,7 @@ Representing an image in the YCbCr colorspace doesn't in itself make it any smal
 
 This layer of compression is largely the defining feature of JPEG. After the colors are converted to YCbCr, the components are compressed individually, so we can focus on just the Y component for the rest of the article. Here's what the bytes for the Y component look like with this layer applied.
 
-[DctEditor fullWidth:true ref:"DCT1" comp:"Y" imageUrl:"static/images/blanket-cat-smallest.jpg" /]
+[DctEditor fullWidth:true ref:"DCT1" comp:"Y" imageUrl:"static/images/blanket-cat-smallest.jpg" maxWidth:400 /]
 
 [aside]
 Hint: Try clicking on any pixel in the image to see the line in the editor that represents it. Try removing numbers from the end, or adding a few zero's to any individual number to make its effect more obvious.
@@ -164,7 +164,7 @@ You can see each of these patterns by zeroing out all but one of the numbers in 
 [data name:"DCT-grid" source:"DCT-grid.json" /]
 [data name:"DCT-circle" source:"DCT-circle.json" /]
 [data name:"DCT-eye" source:"DCT-eye.json" /]
-[DctEditor fullWidth:true ref:"DCT2" imageUrl:"static/images/DCTGrid.jpg" override:DCT-grid/]
+[DctEditor fullWidth:true ref:"DCT2" imageUrl:"static/images/DCTGrid.jpg" override:DCT-grid isUrlExempt:true/]
 
 These patterns are special because they form a basis for 8x8 images. If you're not familiar with linear algebra, what that means is that any 8x8 image, anything at all that you can imagine, can be made out of these specific 64 patterns. The Discrete Cosine Transform is the process of converting the colors of an image to these 64 coefficients. Here's [EditorLink editor:`refs.DCT2` pattern:"animate-DCT" DCT:DCT-circle]how you would form a circle[/EditorLink] by combining these patterns, or [EditorLink editor:`refs.DCT2` pattern:"animate-DCT" DCT:DCT-eye]the cat's face[/EditorLink]. You can [EditorLink editor:`refs.DCT2` pattern:"animate-DCT" DCT:DCT-grid]click here to go back to the grid of 64 patterns[/EditorLink].
 
@@ -174,7 +174,7 @@ In terms of compression, it’s not obvious how this helps us. If we need sixty-
 
 While JPEG only applies the Discrete Cosine Transform to blocks of 8 x 8 pixels at a time, there’s no reason we can’t apply it to the whole image. Here’s what it looks like applied to the Y component of the entire image:
 
-[FullDctEditor ref:"DCT3" fullWidth:true imageUrl:"static/images/blanket-cat-smallest.jpg"/]
+[FullDctEditor ref:"DCT3" fullWidth:true imageUrl:"static/images/blanket-cat-smallest.jpg" maxWidth:400 /]
 
 We can [EditorLink editor:`refs.DCT3` pattern:"remove-{170}"]remove over 60,000 numbers[/EditorLink] from the end with almost no noticeable change. But notice that if [EditorLink editor:`refs.DCT3` pattern:"zero-{5}"]we set just the first five numbers to zero[/EditorLink] (ignoring the first because it just makes the image darker) there's already an obvious difference.
 
@@ -196,7 +196,7 @@ All the compression steps so far have been lossy. This last layer, by contrast, 
 
 How do you compress something without throwing away any information? Think about how you would represent a simple solid black image.
 
-[RawEditor ref:"Huffman1" fullWidth:true imageUrl:"static/images/black.jpg" showHeader:false /]
+[RawEditor ref:"Huffman1" fullWidth:true imageUrl:"static/images/black.jpg" showHeader:false isUrlExempt:true /]
 
 JPEG uses ~5,000 numbers to represent this. But we can do much better. Can you think of an encoding scheme to represent this image using as few bytes as possible?
 
@@ -222,7 +222,7 @@ This all leaves just one final mystery: how can changing just a single number co
 
 Below is the original image with the header included.
 
-[RawEditor ref:"Huffman2" fullWidth:true imageUrl:"static/images/blanket-cat.jpg" /]
+[RawEditor ref:"Huffman2" fullWidth:true imageUrl:"static/images/blanket-cat.jpg" maxWidth:700 /]
 
 Without the header, it's practically impossible (or at least very difficult) to decode the JPEG image. It would be as if I was trying to describe a painting to you, in a language I just made up on the spot, just to describe this one particular painting, and expected you to understand. It's probably going to be a very elegant and concise description, but it would be meaningless to anyone other than me.
 

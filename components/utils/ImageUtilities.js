@@ -137,6 +137,30 @@ function getHeaderAndBody(buffer) {
 	return data;
 }
 
+function resizeImage(url, maxWidth, callback) {
+	var img = new Image();
+	img.crossOrigin = "Anonymous";
+
+	img.onload = function () {
+		var canvas = document.createElement("canvas");
+		var ctx = canvas.getContext("2d");
+	    // set size proportional to image
+	    let percent = 1;
+
+	    if (img.width > maxWidth) {
+	    	percent = maxWidth / img.width;
+	    }
+
+	    canvas.width = img.width * percent;
+	    canvas.height = img.height * percent;
+
+	    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+	    callback(canvas);
+	}
+	img.src = url;
+}
+
 class ImageUtilities {
 	constructor(options) {
 		let url = options.url;
@@ -146,6 +170,34 @@ class ImageUtilities {
 		this.imageWidth = 0;
 		this.imageHeight = 0;
 		this.showHeader = options.showHeader;
+
+		// This article allows you to override the given image with a query param
+		// unless specifically instructed not to by passing the `options.isUrlExempt`.
+		let urlParams = new URLSearchParams(window.location.search);
+		let loadFromUrl = false;
+		if (urlParams.has('imageSrc') && options.isUrlExempt != true) {
+			loadFromUrl = true;
+			let maxWidth = 400;
+			if (options.maxWidth != undefined) {
+				maxWidth = options.maxWidth;
+			}
+
+			resizeImage(urlParams.get('imageSrc'), maxWidth, function(canvas) {
+				canvas.toBlob(function(blob) {
+					return loadImageFromResponse(new Response(blob))
+						.then(function() {
+							options.callback(that);
+						})
+				}, 'image/jpeg', 0.95);
+
+				// var url = canvas.toDataURL('image/jpeg');
+				// var img = new Image(); 
+				// img.src = url;
+				// img.onload = function() {
+				// 	document.querySelector("#idyll-mount > div > div > div:nth-child(8) > p:nth-child(3)").appendChild(img)
+				// }
+			})
+		}
 
 		this.savedComponents = {};
 
@@ -178,30 +230,39 @@ class ImageUtilities {
 
 		this.highlightPixelOnClick = options.highlightPixelOnClick;
 
-		this.readyPromise = fetch(url)
-			.then(function(response) {
-				return response.arrayBuffer();
-			})
-			.then(function(buffer) {
-				if (that.editMode == 'raw') {
-					let data = getHeaderAndBody(buffer);
-					that.body = data.body;
-					that.header = data.header;
-					if (that.showHeader) {
-						that.totalBytes = that.header.concat(that.body);
-					} else {
-						that.totalBytes = that.body;
-					}
+		function loadImageFromResponse(response) {
+			return response.arrayBuffer()
+				.then(function(buffer) {
+					if (that.editMode == 'raw') {
+						let data = getHeaderAndBody(buffer);
+						that.body = data.body;
+						that.header = data.header;
+						if (that.showHeader) {
+							that.totalBytes = that.header.concat(that.body);
+						} else {
+							that.totalBytes = that.body;
+						}
 
-				} else {
-					that.decodedImage = jpeg.decode(buffer, { useTArray:true });
-					that.imageWidth = that.decodedImage.width;
-					that.imageHeight = that.decodedImage.height;
-				}
+					} else {
+						that.decodedImage = jpeg.decode(buffer, { useTArray:true });
+						that.imageWidth = that.decodedImage.width;
+						that.imageHeight = that.decodedImage.height;
+					}
+				})
+		}
+
+		if (!loadFromUrl) {
+			fetch(url)
+			.then(function(response) {
+				return loadImageFromResponse(response);
+			}).then(function() {
+				options.callback(that);
 			})
 			.catch(function(error) {
 				console.log(error)
 			});
+		}
+		
 	}
 
 	fillDecodedComponent(componentName, values) {
