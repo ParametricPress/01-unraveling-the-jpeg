@@ -11,7 +11,13 @@
   headerImage:"static/images/luxury.png"
   authors:`[{
     name: "Omar Shehata",
-    role: ''
+    role: 'Words and Graphics'
+  }, {
+    name: "Matthew Conlen",
+    role: "Editor"
+  }, {
+    name: "Victoria Uren",
+    role: "Editor"
   }]`
   doi:""
   archive:""
@@ -279,6 +285,6 @@ All the code for this article is open source and public domain. You can find it 
 Edited by Matthew Conlen and Victoria Uren.
 [/AuthorBio]
 
-[NextArticle /]
+[NextArticle fullWidth:true /]
 
 [Footer fullWidth:true /]

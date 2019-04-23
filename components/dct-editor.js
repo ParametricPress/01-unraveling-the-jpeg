@@ -17,7 +17,7 @@ class DctEditor extends D3Component {
     let that = this;
 
     function done(imageEditor) {
-      imageEditor.createImageEditor(node, 'Discrete Cosine Transform Editor');
+      imageEditor.createImageEditor(node, 'Discrete Cosine Transform');
 
       if (props.override != undefined) {
         let values = [];
