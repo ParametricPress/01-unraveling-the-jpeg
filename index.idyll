@@ -90,7 +90,7 @@ It's hard to decipher how the image can be reconstructed from these bytes by pla
 ### The three layers of JPEG compression
 1. Chrominance Subsampling
 2. Discrete Cosine Transform & Quantization
-3. Huffman, Run-Length & Delta Encoding
+3. Run-Length, Delta & Huffman Encoding
 
 [/inset]
 
@@ -210,7 +210,7 @@ One really cool thing you can do with this technique is progressively stream pic
 
 Just for fun, here's what it looks like using just [EditorLink editor:`refs.DCT3` pattern:"remove-{268}"]24,000 numbers[/EditorLink], or just [EditorLink editor:`refs.DCT3` pattern:"remove-{316}"]5000 numbers[/EditorLink]. Pretty blurry, but almost recognizable!
 
-## 3. Huffman, Run-Length & Delta Encoding
+## 3. Run-Length, Delta & Huffman Encoding
 
 All the compression steps so far have been lossy. This last layer, by contrast, is lossless. It doesn't remove any information, but it does make the file size significantly smaller.
 
@@ -222,31 +222,33 @@ JPEG uses about 5,000 numbers to represent this, but we can do much better. Can 
 
 The smallest I could think of was four bytes: three to specify the color and one to specify how many pixels have this color. The idea of expressing all repeated values concisely this way is called **run-length encoding**. It's lossless because we can recover the encoded data exactly as it was before.
 
-The file size is much bigger than that with JPEG because in the second layer, the compression is applied to 8x8 blocks at a time. So at minimum we'll need one DCT coefficient for each 64 pixel block. With run-length encoding, instead of storing one DCT coefficient followed by 63 zeros for this image, we can just store one number and say "the rest are zero".
+The file size of the solid black JPEG image is much bigger than four bytes because remember that in the DCT layer, the compression is applied to 8x8 blocks at a time. So at minimum we'll need one DCT coefficient for each 64 pixel block. We only need one because instead of storing one DCT coefficient followed by 63 zeros for this image, run-length encoding allows us to just store one number and say "the rest are zero".
 
-**Delta-encoding** is the reason some numbers change the color for all subsequent pixels. The idea is that instead of storing the absolute value of each byte, you can store its value relative to the byte before it. For example, instead of storing:
-
-```
-12 13 14 16 17 18 19 20
-```
-
-You would start with 12, and from there, just store how much you need to add or subtract to get the next number. So that would be:
+**Delta-encoding** is the technique of storing each byte as a relative value compared to something before it instead of storing its absolute value. This is the reason editing certain bytes will change the color for all subsequent pixels. For example, instead of storing:
 
 ```
-12 1 1 2 1 1 1 1
+12 13 14 14 14 13 13 14
 ```
 
-This by itself doesn't reduce the number of bytes you have, but you can imagine it can help a lot if you're doing it before applying something like run-length encoding. The first DCT coefficient in each block is delta-encoded. This is because JPEG assumes that the average color (the first DCT coefficient) between blocks won't change too much, even if the details (the 63 other DCT coefficients) do change.
+You would start with 12, and from there, just store how much you need to add or subtract to get the next number. So once delta-encoded the sequence above becomes:
 
-This all leaves just one final mystery: how can changing just a single number completely wreck the image? This was not a property of any of the other compression layers. The answer lies in the JPEG header. It's the first 500ish bytes that contain metadata about the image, like its width and height, and has been omitted from all the figures so far.
+```
+12 1 1 0 0 -1 0 1
+```
+
+Once again, the transformed data is not any smaller than the original, but it is more compressible. Applying delta encoding before run-length can help a lot, while still remaining a completely lossless compression step. 
+
+Delta encoding is one of the few techniques that is applied outside the 8x8 blocks. Out of the 64 DCT coefficients, the first one is just a constant wave function (you see it as a solid color). It represents the average brightness of each block for the luminance components, or the average blueness for the Cb components etc. This first value in each DCT block is called the DC value, and each DC value is delta-encoded relative to the ones before it. So changing the brightness of the very first block will affect all blocks in the image.
+
+This all leaves just one final mystery: how can changing just a single number completely wreck the image? This was not a property of any of compression layers so far. The answer lies in the JPEG header. It's the first 500 or so bytes that contain metadata about the image, like its width and height, and has been omitted from all the byte editors so far.
 
 Below is the original image with the header included.
 
 [RawEditor ref:"Huffman2" fullWidth:true imageUrl:"static/images/blanket-cat.jpg" maxWidth:700 /]
 
-Without the header, it's practically impossible (or at least very difficult) to decode the JPEG image. It would be as if I was trying to describe a painting to you, in a language I just made up on the spot, just to describe this one particular painting, and expected you to understand. It's probably going to be a very elegant and concise description, but it would be meaningless to anyone other than me.
+Without the header, it's practically impossible (or at least very difficult) to decode the JPEG image. It would be as if I was trying to describe a painting to you, and I started to invent words to communicate what I saw. It's probably going to be a very concise description, since I can define the words to mean exactly what I want to communicate, but it would be meaningless to anyone other than me.
 
-This may sound ridiculous, but this is exactly what's going on here. Every single JPEG image is encoded with a language-of-sorts that's unique to this particular image. The dictionary you need is stored in the header. This technique is called **Huffman encoding**, and the dictionary is called a Huffman table. This table is marked in the header by two bytes: 255 followed by 196. Each component may have its own Huffman table.
+This may sound ridiculous, but this is exactly what's going on here. Every single JPEG image is compressed with a code that's  specific to this particular image. These codes are defined in a dictionary stored in the header. This technique is called **Huffman encoding**, and the dictionary is called a Huffman table. This table is marked in the header by two bytes: 255 followed by 196. Each color component may have its own Huffman table.
 
 Changes to these Huffman tables will have the most dramatic effects on any image. Changing [EditorLink editor:`refs.Huffman2` line:15 search:'125 1' replace:'125 12']the second 1 to 12 on line 15[/EditorLink] is a good example. Changing anything after the 125 on that line works too.
 
@@ -266,7 +268,7 @@ Based on the Huffman table, these could actually be three values. To extract the
 
 Then follow the table to figure out how to group them. For example, it could be the first six bits (111010) which is 58 in decimal, followed by another five bits (10011) which is 19 and finally the last four bits (0011), which is 3.
 
-This is why it's very difficult to make sense of the bytes at this layer of compression. The bytes don't actually represent what they seem to represent. The exact process behind how to follow a Huffman table to extract the values from these bytes is beyond the scope of this article, but since it's not unique to JPEG, [Reference content:"Tom Scott's video on Huffman Encoding https://www.youtube.com/watch?v=JsTptu56GM8, also you'll need the ImpulseAdventure article"]there are many good explanations of it[/Reference].
+This is why it's very difficult to make sense of the bytes at this layer of compression. The bytes don't actually represent what they seem to represent. I won't go into the details of how to extract the Huffman table and translate the bits in this article, but there are [Reference content:"Tom Scott's [a href:'https://www.youtube.com/watch?v=JsTptu56GM8']video on Huffman Encoding[/a] is a great explanation of how it works in general. This [a href:'https://www.impulseadventure.com/photo/jpeg-huffman-coding.html']article by Calvin Hass at ImpulseAdventure[/a] goes into how to extract the Huffman tables from a JPEG image and use it for decoding."]many good resources on this if you're curious[/Reference].
 
 [aside]
 One neat trick you can do with this knowledge is strip out the header from a JPEG image and save it separately. You're effectively making it so only you can read it. [a href:"https://code.fb.com/android/the-technology-behind-preview-photos/" target:"_blank"]Facebook actually does this[/a] to make JPEG images even smaller.
@@ -278,19 +280,19 @@ Another thing you can do is change the Huffman table just slightly. To anyone el
 
 So to summarize, what all does it take to decode a JPEG image? You need to:
 
-1. Extract the Huffman table(s) from the header.
-2. Extract the Discrete Cosine Transform coefficients of each component, for each 8x8 block, by undoing the Huffman, run-length, and delta encodings.
+1. Extract the Huffman table(s) from the header and decode the bits.
+2. Extract the Discrete Cosine Transform coefficients for each color/luminance component, for each 8x8 block, by undoing the run-length and delta encodings.
 3. Combine the cosine waves based on the coefficients to get back the pixel values for each 8x8 block (this is known as the inverse Discrete Cosine Transform).
 4. Scale up the chrominance components if they were subsampled (the header has this information).
 5. Convert the resulting YCbCr of each pixel to RGB.
 6. Display the image!
 
-I hope this makes you appreciate all the work that goes into viewing even a simple cat picture!
+That's a lot of work to view a simple cat picture! But what I love about this is that you can see how JPEG is a very human-centric technology. It relies on the quirks of our perception to achieve compression rates far greater than is possible with general purpose techniques. And now that you understand how JPEG works, you can imagine how many of these techniques can be extended to other domains. For example, applying delta-encoding in video can produce a huge file size reduction since there are often areas that don't change at all between frames (such as the background). 
 
-All the code for this article is open source and public domain. You can find it at X.
+All the code for this article is [a href:"https://github.com/ParametricPress/01-unraveling-the-jpeg"]open source[/a] and includes instructions on replacing the images in these byte editors with your own.
 
 [AuthorBio]
-**Omar Shehata** is a graphics programmer at Cesium and an Egyptian citizen in Philadelphia, PA.
+**Omar Shehata** is a graphics programmer at Cesium working on open source, web-based 3D maps. He grew up in Alexandria, Egypt and currently lives in Philadelphia, PA.
 
 Edited by Matthew Conlen and Victoria Uren.
 [/AuthorBio]
