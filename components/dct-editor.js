@@ -17,7 +17,7 @@ class DctEditor extends D3Component {
     let that = this;
 
     function done(imageEditor) {
-      imageEditor.createImageEditor(node, 'DCT Editor');
+      imageEditor.createImageEditor(node, 'Discrete Cosine Transform Editor');
 
       if (props.override != undefined) {
         let values = [];
@@ -34,7 +34,7 @@ class DctEditor extends D3Component {
         // Put each block in a line, since each block has 64 numbers.
         imageEditor.putValuesInEditor(dctCoefficients, 64, true);
       }
-      
+
       that.imageEditor = imageEditor;
       setTimeout(() => imageEditor.editor.resize(), 1500)
     }
