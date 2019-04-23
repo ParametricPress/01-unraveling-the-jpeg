@@ -127,7 +127,7 @@ Using the YCbCr colorspace is not unique to JPEG. In fact, it was originally [a 
 
 This is why removing one number from the editor above completely ruins the color. Here, the [Tooltip content:"In general, JPEG images need not store the components in any particular order. They might be interleaved like in this example, or all the Y components of the image could be stored followed by all the Cb etc. The header of the JPEG is what tells us how the components are stored."]components are stored[/Tooltip] as **Y Y Y Y Cb Cr**. Removing the first number causes the Cb value to be interpreted as Y, the Cr as Cb, and creates a ripple effect that flips all the colors across the image.
 
-There's nothing in the JPEG specification that says you must use YCbCr, or that you can't subsample the Y component. Instead of taking it for granted that it's good to preserve as much of the Y as possible, you can see for yourself in the diagram below what it would look to subsample each component individually.
+There's nothing in the JPEG specification that says you must use YCbCr. Most JPEG images you'll find use it because it tends to produce higher quality images after subsampling compared to RGB. You don't have to take this for granted though. You can see for yourself in the grid below what it looks like to subsample each component individually across R, G, and B as well as Y, Cb, and Cr.
 
 [var name:"subsamplePercent" value:0.15 /]
 
@@ -143,9 +143,9 @@ Move slider to adjust the amount of subsampling applied.
 Removing a bit of blue isn't as noticeable as removing red or green. This is because of the six million cones you have in your eyes, about 64% are most sensitive to red, 32% to green, and only 2% to blue.
 [/aside]
 
-Subsampling the Y component (bottom left) has the greatest effect on the image quality. Even a tiny bit is already noticable. You can move the slider to see how removing a greater % of each component affects the image.
+Subsampling the Y component (bottom left) has the greatest effect on the image quality. Even a tiny bit is already noticable. You can move the slider to see how removing a greater percentage of each component affects the image.
 
-Representing an image in the YCbCr colorspace doesn't in itself make it any smaller than using RGB, but it allows us to more easily pick out less noticeable details to throw away (in this case, color). This idea of finding new ways to represent data to make it more compressible is very common in compression techniques, and is at the heart of what the next layer does.
+Converting an image from RGB to YCbCr doesn't make the file size any smaller, but it does make it easier to find less noticable details to remove. It's that second step where the actual lossy compression happens. This idea of finding new ways to represent data to make it more compressible is at the heart of what the next layer does.
 
 ## 2. Discrete Cosine Transform & Quantization
 
