@@ -127,7 +127,7 @@ Using the YCbCr colorspace is not unique to JPEG. In fact, it was originally [a 
 
 This is why removing one number from the editor above completely ruins the color. Here, the [Tooltip content:"In general, JPEG images need not store the components in any particular order. They might be interleaved like in this example, or all the Y components of the image could be stored followed by all the Cb etc. The header of the JPEG is what tells us how the components are stored."]components are stored[/Tooltip] as **Y Y Y Y Cb Cr**. Removing the first number causes the Cb value to be interpreted as Y, the Cr as Cb, and creates a ripple effect that flips all the colors across the image.
 
-There's nothing in the JPEG specification that says you must use YCbCr. Most JPEG images you'll find use it because it tends to produce higher quality images after subsampling compared to RGB. You don't have to take this for granted though. You can see for yourself in the grid below what it looks like to subsample each component individually across R, G, and B as well as Y, Cb, and Cr.
+There's nothing in the JPEG specification that says you must use YCbCr. Most JPEG images you'll find use it because it tends to produce higher quality images after subsampling compared to RGB. You don't have to take this for granted though. You can see for yourself in the grid below what it looks like to subsample each component individually across RGB as well as YCbCr.
 
 [var name:"subsamplePercent" value:0.15 /]
 
@@ -159,34 +159,41 @@ Hint: Try clicking on any pixel in the image to see the line in the editor that 
 
 At first glance, this seems like very poor compression. There are 100,000 pixels in this image, and yet it takes 102,400 numbers to represent the luminance of each pixel—that's worse than not compressing it at all!
 
-But notice that most of these values are 0. In fact, [EditorLink editor:`refs.DCT1` pattern:"remove-zeros"]all of these trailing zeros can be removed[/EditorLink] with no change to the image. This leaves only about 23,000 numbers, which makes it about 4x smaller!
+But notice that most of these values are 0. In fact, [EditorLink editor:`refs.DCT1` pattern:"remove-zeros"]all of these trailing zeros can be removed[/EditorLink] with no change to the image. This leaves only about 26,000 numbers, which makes it about four times smaller!
 
-In this layer lies the secret to the checkerboard patterns. Unlike the other effects we've seen, the appearance of these patterns is not a glitch. They are in fact the building blocks of the entire image! Every line in the editor above contains exactly 64 numbers, known as the Discrete Cosine Transform (DCT) coefficients, which correspond to intensities of 64 unique patterns.
+In this layer lies the secret to the checkerboard patterns. Unlike the other effects we've seen, the appearance of these patterns is not a glitch. They are in fact the building blocks of the entire image. Every line in the editor above contains exactly 64 numbers, known as the Discrete Cosine Transform (DCT) coefficients, which correspond to intensities of 64 unique patterns.
 
-You can see each of these patterns by zeroing out all but one of the numbers in any line. Here's an image that shows all 64 of them individually.
+These patterns are formed out of cosine waves. Here's what a few of them look like:
+
+[img src:"static/images/dct_coefficients.png"/]
+  [caption]
+    These are 8 of the 64 discrete cosine transform coefficients. Credit: [a href:"http://www.jezzamon.com/fourier/index.html"]Jez Swanson[/a].
+  [/caption]
+
+Below is an image that shows all 64 of them individually.
 
 [data name:"DCT-grid" source:"DCT-grid.json" /]
 [data name:"DCT-circle" source:"DCT-circle.json" /]
 [data name:"DCT-eye" source:"DCT-eye.json" /]
 [DctEditor fullWidth:true ref:"DCT2" imageUrl:"static/images/DCTGrid.jpg" override:DCT-grid isUrlExempt:true/]
 
-These patterns are special because they form a basis for 8x8 images. If you're not familiar with linear algebra, what that means is that any 8x8 image, anything at all that you can imagine, can be made out of these specific 64 patterns. The Discrete Cosine Transform is the process of converting the colors of an image to these 64 coefficients. Here's [EditorLink editor:`refs.DCT2` pattern:"animate-DCT" DCT:DCT-circle]how you would form a circle[/EditorLink] by combining these patterns, or [EditorLink editor:`refs.DCT2` pattern:"animate-DCT" DCT:DCT-eye]the cat's face[/EditorLink]. You can [EditorLink editor:`refs.DCT2` pattern:"animate-DCT" DCT:DCT-grid]click here to go back to the grid of 64 patterns[/EditorLink].
+These patterns are special because they form a basis for 8x8 images. If you're not familiar with linear algebra, what that means is that any 8x8 image, anything at all that you can imagine, can be made out of these specific 64 patterns. The Discrete Cosine Transform is the process of breaking up the image into 8x8 blocks and converting each block into a combination of these 64 coefficients. Here's [EditorLink editor:`refs.DCT2` pattern:"animate-DCT" DCT:DCT-circle]how you would form a circle[/EditorLink] by combining these patterns, or [EditorLink editor:`refs.DCT2` pattern:"animate-DCT" DCT:DCT-eye]the cat's face[/EditorLink]. You can [EditorLink editor:`refs.DCT2` pattern:"animate-DCT" DCT:DCT-grid]click here to go back to the grid of 64 patterns[/EditorLink].
 
 It seems like magic to say that any image can be represented using 64 specific patterns. But this is the same thing as saying any location on the Earth can be represented using only two numbers: longitude and latitude. We often treat the surface of the Earth as two-dimensional, so only two numbers are needed. An 8x8 image is sixty-four-dimensional, so we need sixty-four numbers.
 
-In terms of compression, it’s not obvious how this helps us. If we need sixty-four numbers to represent an 8x8 image, why is this better than storing the sixty-four luminance components? For the same reason we converted from the three numbers of RGB to the three numbers of YCbCr: it allows us to remove detail that’s less noticeable.
+In terms of compression, it’s not obvious how this helps us. If we need sixty-four numbers to represent an 8x8 image, why is this better than storing the sixty-four luminance components? We do it for the same reason we converted from the three numbers of RGB to the three numbers of YCbCr: it allows us to remove detail that’s less noticeable.
 
-While JPEG only applies the Discrete Cosine Transform to blocks of 8x8 pixels at a time, there’s no reason we can’t apply it to the whole image. Here’s what it looks like applied to the Y component of the entire image:
+It's hard to see exactly what the details that are removed in this compression step look like because JPEG only applies the Discrete Cosine Transform to blocks of 8x8 pixels at a time. However, there’s no reason we can’t apply it to the whole image. Here’s what it looks like to apply the DCT to the Y component of the entire image:
 
 [FullDctEditor ref:"DCT3" fullWidth:true imageUrl:"static/images/blanket-cat-smallest.jpg" maxWidth:400 /]
 
 We can [EditorLink editor:`refs.DCT3` pattern:"remove-{170}"]remove over 60,000 numbers[/EditorLink] from the end with almost no noticeable change. But notice that if [EditorLink editor:`refs.DCT3` pattern:"zero-{5}"]we set just the first five numbers to zero[/EditorLink] (ignoring the first because it just makes the image darker) there's already an obvious difference.
 
-The numbers at the beginning represent the lower frequency changes in the image, which our eyes are more sensitive to, while numbers towards the end represent the higher frequency changes, which we're less sensitive to, so we don't notice when they're gone. I promised I'd show you "what our eyes can't see", so let's isolate these high frequency details by setting the [EditorLink editor:`refs.DCT3` pattern:"zero-{5000}"]first 5,000 numbers to zero[/EditorLink].
+The numbers at the beginning represent the lower frequency changes in the image, which our eyes are better at detecting. The numbers towards the end represent the higher frequency changes, which are harder for us to see, so we don't notice when they're gone. To see "what our eyes can't see", we can isolate these high frequency details by setting the [EditorLink editor:`refs.DCT3` pattern:"zero-{5000}"]first 5,000 numbers to zero[/EditorLink].
 
 What you're looking at here is all the areas of the image that have the greatest change from one pixel to the next. The cat's eyes, whiskers, fuzzy blanket and shadows in the bottom left corner all stand out. This can be taken even further, to setting the first [EditorLink editor:`refs.DCT3` pattern:"zero-{10000}"]10,000 numbers to zero[/EditorLink]; [EditorLink editor:`refs.DCT3` pattern:"zero-{20000}"]20,000[/EditorLink]; [EditorLink editor:`refs.DCT3` pattern:"zero-{40000}"]40,000[/EditorLink] or [EditorLink editor:`refs.DCT3` pattern:"zero-{60000}"]60,000[/EditorLink].
 
-These details are what JPEG removes during this compression step. Converting the colors to the DCT coefficients is not a lossy operation. It's the quantization step that's lossy, where values that are either high frequency or are close to zero, are removed. The more you remove, the greater the compression, and worse the final quality of the image is. This is why the version of the image in the first section that was 57x smaller looked blocky. Each 8x8 block was represented by far fewer DCT coefficients.
+These high frequency details are what JPEG removes during this compression step. Converting the colors to the DCT coefficients is not a lossy operation. It's the quantization step that's lossy, where values that are either high frequency or are close to zero are removed. When you select a lower quality setting when creating a JPEG image, it increases the threshold for how many of these values are removed, which leads to a smaller file size but a blockier image. This is why the version of the image in the first section that was 57x smaller looked blocky. Each 8x8 block was represented by far fewer DCT coefficients than the higher quality version.
 
 [aside]
 One really cool thing you can do with this technique is progressively stream pictures. Imagine seeing a blurry version of the whole image and slowly seeing it become more and more detailed as the download progresses and more DCT coefficients are available. This is actually possible to do with JPEG, but not as commonly used.
