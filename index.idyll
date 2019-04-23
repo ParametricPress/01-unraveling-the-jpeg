@@ -11,11 +11,20 @@
   headerImage:"static/images/luxury.png"
   authors:`[{
     name: "Omar Shehata",
-    role: ''
+    role: 'Author & Developer',
+    url: "https://omarshehata.me/"
+  }, {
+    name: "Victoria Uren",
+    role: "Editor",
+
+  }, {
+    name: "Matthew Conlen",
+    role: "Editor",
+    url: "https://twitter.com/mathisonian"
   }]`
   doi:""
-  archive:""
-  source:""
+  archive:"https://parametric.press/archives/issue-01/unraveling-the-jpeg"
+  source:"https://github.com/ParametricPress/01-unraveling-the-jpeg"
 /]
 
 It's easy to take for granted that you can send a picture to a friend without worrying about what device, browser, or operating system they’re using, but things weren’t always this way. By the early 1980s, computers could store and display digital images, but there were many competing ideas about how best to do that. You couldn't just send an image from one computer to another and expect it to work.
@@ -286,6 +295,6 @@ All the code for this article is open source and public domain. You can find it 
 Edited by Matthew Conlen and Victoria Uren.
 [/AuthorBio]
 
-[NextArticle /]
+[NextArticle fullWidth:true /]
 
 [Footer fullWidth:true /]

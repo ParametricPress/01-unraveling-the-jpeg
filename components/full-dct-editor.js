@@ -11,7 +11,7 @@ class FullDctEditor extends D3Component {
     let that = this;
 
     function done(imageEditor) {
-      imageEditor.createImageEditor(node, 'Full Discrete Cosine Transform Editor');
+      imageEditor.createImageEditor(node, 'Full Discrete Cosine Transform');
       // Get the decoded luminance values.
       let luminanceValues = imageEditor.getDecodedComponent('Y');
     // Convert them into cosine waves.

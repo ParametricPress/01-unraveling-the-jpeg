@@ -110,10 +110,14 @@ color: #4801FF;
   .image-editor {
     flex-direction: column;
   }
+  .image-editor-header > div:nth-of-type(2) {
+    line-height: 16px;
+    font-size: 14px;
+  }
   .image-editor-header > div:nth-of-type(3) {
     text-align: right;
-    font-size: 12px;
-    line-height: 14px;
+    font-size: 10px;
+    line-height: 12px;
     font-weight: 500;
   }
   .image-editor-header button {

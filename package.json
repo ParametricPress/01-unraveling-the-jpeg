@@ -20,8 +20,8 @@
     "idyll-d3-component": "^2.0.0",
     "idyll-document": "^3.0.6",
     "jpeg-js": "github:OmarShehata/jpeg-js",
-    "parametric-components": "^1.0.23",
-    "parametric-styles": "^1.0.16",
+    "parametric-components": "^1.0.25",
+    "parametric-styles": "^1.0.18",
     "react-image": "^2.0.0",
     "whatwg-fetch": "^3.0.0"
   },
