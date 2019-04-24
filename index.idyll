@@ -1,5 +1,7 @@
 [meta title:"Unraveling The JPEG" description:"JPEG images are everywhere in our digital lives, but behind the veil of familiarity lie algorithms that remove details that are imperceptible to the human eye. This produces the highest visual quality with the smallest file size—but what does that look like? Let's see what our eyes can't see!" /]
 
+[var name:"parametricSlug" value:"unraveling-the-jpeg" /]
+
 [Nav fullWidth:true /]
 
 [Header
@@ -80,10 +82,13 @@ There's a lot you can learn just from playing around with this editor. For examp
 
 Something strange in the example above is that changing some numbers doesn't seem to impact the image at all, while [EditorLink editor:`refs.Raw1` line:1 search:' 17 ' replace:' 0 ']setting the 17 on line one to 0[/EditorLink] completely ruins the image! Other actions, like [EditorLink editor:`refs.Raw1` line:1988 search:' 7 ' replace:' 254 ']setting the 7 on line 1988 to 254[/EditorLink] change the color, but only for subsequent pixels.
 
+[Aside]
+  [Recirc slug:parametricSlug /]
+[/Aside]
+
 Perhaps what's most peculiar is that some numbers change not just the color but the shape of the image as well. Change the [EditorLink editor:`refs.Raw1` line:12 search:' 70 ' replace:' 2 ']70 in line 12 to 2[/EditorLink] and look at the top row of the image to see what I mean. No matter what JPEG image you're using, you'll always find these mysterious checkerboard patterns when editing the bytes.
 
 It's hard to decipher how the image can be reconstructed from these bytes by playing around like this, because JPEG compression is actually composed of three different compression techniques, which are applied in successive layers. We'll look at each of these layers of compression separately to unravel this mysterious behavior we're seeing.
-
 
 [inset]
 
@@ -93,6 +98,7 @@ It's hard to decipher how the image can be reconstructed from these bytes by pla
 3. Run-Length, Delta & Huffman Encoding
 
 [/inset]
+
 
 To give you an idea of the scale of this compression, notice that the image above is represented using exactly 79,819 numbers, which makes it about 79 kilobytes. If it were stored with no compression, three numbers would be needed for each pixel—one for each of the red, green and blue components. That would mean a total of 917,700 numbers, or about 917 kilobytes. With JPEG compression, the resulting file is over **ten times smaller**!
 
@@ -198,6 +204,10 @@ It's hard to see exactly what the details that are removed in this compression s
 
 We can [EditorLink editor:`refs.DCT3` pattern:"remove-{170}"]remove over 60,000 numbers[/EditorLink] from the end with almost no noticeable change. But notice that if [EditorLink editor:`refs.DCT3` pattern:"zero-{5}"]we set just the first five numbers to zero[/EditorLink] (ignoring the first because it just makes the image darker) there's already an obvious difference.
 
+[Aside]
+  [Newsletter /]
+[/Aside]
+
 The numbers at the beginning represent the lower frequency changes in the image, which our eyes are better at detecting. The numbers towards the end represent the higher frequency changes, which are harder for us to see, so we don't notice when they're gone. To see "what our eyes can't see", we can isolate these high frequency details by setting the [EditorLink editor:`refs.DCT3` pattern:"zero-{5000}"]first 5,000 numbers to zero[/EditorLink].
 
 What you're looking at here is all the areas of the image that have the greatest change from one pixel to the next. The cat's eyes, whiskers, fuzzy blanket and shadows in the bottom left corner all stand out. This can be taken even further, to setting the first [EditorLink editor:`refs.DCT3` pattern:"zero-{10000}"]10,000 numbers to zero[/EditorLink]; [EditorLink editor:`refs.DCT3` pattern:"zero-{20000}"]20,000[/EditorLink]; [EditorLink editor:`refs.DCT3` pattern:"zero-{40000}"]40,000[/EditorLink] or [EditorLink editor:`refs.DCT3` pattern:"zero-{60000}"]60,000[/EditorLink].
@@ -297,6 +307,6 @@ All the code for this article is [a href:"https://github.com/ParametricPress/01-
 Edited by Matthew Conlen and Victoria Uren.
 [/AuthorBio]
 
-[NextArticle fullWidth:true /]
+[NextArticle slug:parametricSlug fullWidth:true /]
 
 [Footer fullWidth:true /]
