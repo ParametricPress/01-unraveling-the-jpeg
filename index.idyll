@@ -202,7 +202,7 @@ The numbers at the beginning represent the lower frequency changes in the image,
 
 What you're looking at here is all the areas of the image that have the greatest change from one pixel to the next. The cat's eyes, whiskers, fuzzy blanket and shadows in the bottom left corner all stand out. This can be taken even further, to setting the first [EditorLink editor:`refs.DCT3` pattern:"zero-{10000}"]10,000 numbers to zero[/EditorLink]; [EditorLink editor:`refs.DCT3` pattern:"zero-{20000}"]20,000[/EditorLink]; [EditorLink editor:`refs.DCT3` pattern:"zero-{40000}"]40,000[/EditorLink] or [EditorLink editor:`refs.DCT3` pattern:"zero-{60000}"]60,000[/EditorLink].
 
-These high frequency details are what JPEG removes during this compression step. Converting the colors to the DCT coefficients is not a lossy operation. It's the quantization step that's lossy, where values that are high frequency, close to zero, or both, are removed. When you select a lower quality setting when creating a JPEG image, it increases the threshold for how many of these values are removed, which leads to a smaller file size but a blockier image. This is why the version of the image in the first section that was 57x smaller looked blocky. Each 8x8 block was represented by far fewer DCT coefficients compared to the higher quality version.
+These high frequency details are what JPEG removes during this compression step. Converting the colors to the DCT coefficients is not a lossy operation. It's the quantization step that's lossy, where values that are high frequency, close to zero, or both, are removed. When you select a lower quality setting when creating a JPEG image, it increases the threshold for how many of these values are removed, which leads to a smaller file size but a blockier image. This is why the version of the image in the first section that was 57 times smaller looked blocky. Each 8x8 block was represented by far fewer DCT coefficients compared to the higher quality version.
 
 [aside]
 One really cool thing you can do with this technique is progressively stream pictures. Imagine seeing a blurry version of the whole image and slowly seeing it become more and more detailed as the download progresses and more DCT coefficients are available. This is actually possible to do with JPEG, but not as commonly used.
@@ -236,7 +236,7 @@ You would start with 12, and from there, just store how much you need to add or 
 12 1 1 0 0 -1 0 1
 ```
 
-Once again, the transformed data is not any smaller than the original, but it is more compressible. Applying delta encoding before run-length can help a lot, while still remaining a completely lossless compression step. 
+Once again, the transformed data is not any smaller than the original, but it is more compressible. Applying delta encoding before run-length can help a lot, while still remaining a completely lossless compression step.
 
 Delta encoding is one of the few techniques that is applied outside the 8x8 blocks. Out of the 64 DCT coefficients, the first one is just a constant wave function (you see it as a solid color). It represents the average brightness of each block for the luminance components, or the average blueness for the Cb components etc. This first value in each DCT block is called the DC value, and each DC value is delta-encoded relative to the ones before it. So changing the brightness of the very first block will affect all blocks in the image.
 
@@ -252,7 +252,7 @@ This may sound ridiculous, but this is exactly what's going on here. Every singl
 
 Changes to these Huffman tables will have the most dramatic effects on any image. Changing [EditorLink editor:`refs.Huffman2` line:15 search:'125 1' replace:'125 12']the second 1 to 12 on line 15[/EditorLink] is a good example. Changing anything after the 125 on that line works too.
 
-The Huffman tables have such a dramatic effect on the image because they tell us how to read the individual bits. So far we've just been dealing with the binary numbers in decimal. This hides the fact that if you want to store the number _1_ in a byte, it would look like _00000001_, because each byte must have exactly eight bits even if it only needs one bit.
+The Huffman tables have such a dramatic effect on the image because they tell us how to read the individual bits. So far we've just been dealing with the binary numbers in decimal. This hides the fact that if you want to store the number [i]1[/i] in a byte, it would look like _00000001_, because each byte must have exactly eight bits even if it only needs one bit.
 
 This is potentially a huge waste of storage if you have a lot of small numbers. Huffman encoding is a technique that allows us to relax this requirement that each number must occupy eight bits. That means if you see the two bytes:
 
@@ -266,7 +266,7 @@ Based on the Huffman table, these could actually be three values. To extract the
 11101010 01110011
 ```
 
-Then follow the table to figure out how to group them. For example, it could be the first six bits (111010) which is 58 in decimal, followed by another five bits (10011) which is 19 and finally the last four bits (0011), which is 3.
+Then follow the table to figure out how to group them. For example, it could be the first six bits (111010) which is 58 in decimal, followed by another five bits (10011) which is 19 and finally the last four bits (0011), which is three.
 
 This is why it's very difficult to make sense of the bytes at this layer of compression. The bytes don't actually represent what they seem to represent. I won't go into the details of how to extract the Huffman table and translate the bits in this article, but there are [Reference content:"Tom Scott's [a href:'https://www.youtube.com/watch?v=JsTptu56GM8']video on Huffman Encoding[/a] is a great explanation of how it works in general. This [a href:'https://www.impulseadventure.com/photo/jpeg-huffman-coding.html']article by Calvin Hass at ImpulseAdventure[/a] goes into how to extract the Huffman tables from a JPEG image and use it for decoding."]many good resources on this if you're curious[/Reference].
 
@@ -287,7 +287,7 @@ So to summarize, what all does it take to decode a JPEG image? You need to:
 5. Convert the resulting YCbCr of each pixel to RGB.
 6. Display the image!
 
-That's a lot of work to view a simple cat picture! But what I love about this is that you can see how JPEG is a very human-centric technology. It relies on the quirks of our perception to achieve compression rates far greater than is possible with general purpose techniques. And now that you understand how JPEG works, you can imagine how many of these techniques can be extended to other domains. For example, applying delta-encoding in video can produce a huge file size reduction since there are often areas that don't change at all between frames (such as the background). 
+That's a lot of work to view a simple cat picture! But what I love about this is that you can see how JPEG is a very human-centric technology. It relies on the quirks of our perception to achieve compression rates far greater than is possible with general purpose techniques. And now that you understand how JPEG works, you can imagine how many of these techniques can be extended to other domains. For example, applying delta-encoding in video can produce a huge file size reduction since there are often areas that don't change at all between frames (such as the background).
 
 All the code for this article is [a href:"https://github.com/ParametricPress/01-unraveling-the-jpeg"]open source[/a] and includes instructions on replacing the images in these byte editors with your own.
 
