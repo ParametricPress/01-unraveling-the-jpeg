@@ -158,9 +158,9 @@ Move slider to adjust the amount of subsampling applied.
 Removing a bit of blue isn't as noticeable as removing red or green. This is because of the six million cones you have in your eyes, about 64% are most sensitive to red, 32% to green, and only 2% to blue.
 [/aside]
 
-Subsampling the Y component (bottom left) has the greatest effect on the image quality. Even a tiny bit is already noticable. You can move the slider to see how removing a greater percentage of each component affects the image.
+Subsampling the Y component (bottom left) has the greatest effect on the image quality. Even a tiny bit is already noticeable. You can move the slider to see how removing a greater percentage of each component affects the image.
 
-Converting an image from RGB to YCbCr doesn't make the file size any smaller, but it does make it easier to find less noticable details to remove. It's that second step where the actual lossy compression happens. This idea of finding new ways to represent data to make it more compressible is at the heart of what the next layer does.
+Converting an image from RGB to YCbCr doesn't make the file size any smaller, but it does make it easier to find less noticeable details to remove. It's that second step where the actual lossy compression happens. This idea of finding new ways to represent data to make it more compressible is at the heart of what the next layer does.
 
 ## 2. Discrete Cosine Transform & Quantization
 
