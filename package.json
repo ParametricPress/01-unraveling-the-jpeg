@@ -3,11 +3,11 @@
   "version": "1.0.0",
   "license": "MIT",
   "idyll": {
-    "layout": "blog",
     "css": "styles.css",
     "authorView": false,
     "template": "_index.html",
-    "theme": "node_modules/parametric-styles/issue-01-theme.css",
+    "layout": "none",
+    "theme": "none",
     "components": [
       "./components",
       "./node_modules/parametric-components/dist/cjs/issue-01"

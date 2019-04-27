@@ -25,6 +25,11 @@
   margin: 0;
   margin-left: 50px;
   padding: 0.5em 1em;
+  transition: 0.25s;
+}
+.image-editor-header button:active {
+  transform: scale(0.95);
+  color: #c5c5c5;
 }
 
 .image-editor-header > * {
@@ -165,4 +170,26 @@ color: #4801FF;
 .subsample-controls input {
   display: block;
   margin: 1em auto;
+}
+
+body.enabled {
+  opacity: 1;
+}
+body.enabled .parametric-article-nav {
+  opacity: 1;
+}
+body.enabled .idyll-text-container {
+  opacity: 1;
+}
+body.enabled .article-header {
+  opacity: 1;
+}
+body.enabled .parametric-article-dek {
+  opacity: 1;
+}
+body.enabled .parametric-header-hed-text {
+  opacity: 1;
+}
+body.enabled .hed-rotate {
+  opacity: 1;
 }
