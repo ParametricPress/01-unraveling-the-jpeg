@@ -15,14 +15,6 @@
     name: "Omar Shehata",
     role: 'Author & Developer',
     url: "https://omarshehata.me/"
-  }, {
-    name: "Victoria Uren",
-    role: "Editor",
-
-  }, {
-    name: "Matthew Conlen",
-    role: "Editor",
-    url: "https://twitter.com/mathisonian"
   }]`
   doi:""
   archive:"https://parametric.press/archives/issue-01/unraveling-the-jpeg"
