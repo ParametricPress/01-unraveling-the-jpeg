@@ -1,4 +1,7 @@
-[meta title:"Unraveling The JPEG" description:"JPEG images are everywhere in our digital lives, but behind the veil of familiarity lie algorithms that remove details that are imperceptible to the human eye. This produces the highest visual quality with the smallest file size—but what does that look like? Let's see what our eyes can't see!" /]
+[meta title:"Unraveling The JPEG" description:"JPEG images are everywhere in our digital lives, but behind the veil of familiarity lie algorithms that remove details that are imperceptible to the human eye. This produces the highest visual quality with the smallest file size—but what does that look like? Let's see what our eyes can't see!"
+  shareImageUrl:"https://issue-01-preview.parametric.press/issue-01/unraveling-the-jpeg/static/images/share.png"
+  shareImageWidth:"880"
+  shareImageHeight:"440" /]
 
 [var name:"parametricSlug" value:"unraveling-the-jpeg" /]
 
