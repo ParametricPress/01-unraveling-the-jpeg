@@ -1,5 +1,5 @@
 [meta title:"Unraveling The JPEG" description:"JPEG images are everywhere in our digital lives, but behind the veil of familiarity lie algorithms that remove details that are imperceptible to the human eye. This produces the highest visual quality with the smallest file size—but what does that look like? Let's see what our eyes can't see!"
-  shareImageUrl:"https://issue-01-preview.parametric.press/issue-01/unraveling-the-jpeg/static/images/share.png"
+  shareImageUrl:"https://parametric.press/issue-01/unraveling-the-jpeg/static/images/share.png"
   shareImageWidth:"880"
   shareImageHeight:"440" /]
 
@@ -282,7 +282,9 @@ Then follow the table to figure out how to group them. For example, it could be 
 
 
 [div]
+
 This is why it's very difficult to make sense of the bytes at this layer of compression. The bytes don't actually represent what they seem to represent. I won't go into the details of how to extract the Huffman table and translate the bits in this article, but there are [Reference content:"Tom Scott's <a href='https://www.youtube.com/watch?v=JsTptu56GM8'>video on Huffman Encoding</a> is a great explanation of how it works in general. This <a href='https://www.impulseadventure.com/photo/jpeg-huffman-coding.html'>article by Calvin Hass at ImpulseAdventure</a> goes into how to extract the Huffman tables from a JPEG image and use it for decoding."]many good resources on this if you're curious[/Reference].
+
 [/div]
 
 

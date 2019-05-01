@@ -491,6 +491,10 @@ pre {
   padding-left: 40px !important;
 }
 
+.idyll-root {
+  max-width: 1440px;
+  /* margin-left: 0; */
+}
 .idyll-root::before {
   display: table;
   content: "";
@@ -979,9 +983,9 @@ h2 {
 }
 
 .idyll-root {
-  padding-top: 0;
   margin-bottom: 0 !important;
   padding-bottom: 0;
+  padding-top: 0;
 }
 
 
@@ -997,7 +1001,11 @@ button, input[type=submit] {
   font-size: 14px;
   padding: 1em 2em;
   cursor: pointer;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
 }
+
 
 pre {
   max-width: 960px;
@@ -1175,6 +1183,7 @@ body {
   font-family: 'Graphik Web';
   font-size: 14px;
   line-height: 16px;
+  font-weight: 400;
 }
 
 a {
@@ -1202,6 +1211,7 @@ a {
 .parametric-header-text {
   display: flex;
   width: 100vw;
+  max-width: 1440px;
   position: relative;
   top: 4em;
 }
@@ -1223,6 +1233,7 @@ a {
   font-weight: bold;
   margin-bottom: 1em;
   margin-left: 50px;
+  max-width: 1340px;
 }
 .parametric-recirc-next-article a {
   font-family: 'Graphik Web';
@@ -1259,6 +1270,7 @@ a {
   /* max-width: 600px; */
   font-size: 14px;
   line-height: 1.25;
+  font-weight: 400;
 }
 
 .parametric-caption a {
@@ -1315,12 +1327,13 @@ a {
 .parametric-footer {
   background: #222222;
   color: white;
-  display: flex;
-  flex-direction: row;
   padding: 2em 50px 3em 50px;
   margin-top: 2em;
   font-family: 'Graphik Web';
   font-size: 16px;
+  width: 100vw;
+  left: 0;
+  position: absolute;
 }
 
 .parametric-footer-link-container {
@@ -1343,7 +1356,8 @@ a {
 }
 
 .parametric-footer > div {
-  width: 100%;
+  max-width: 1340px;
+  margin: 0 auto;
 }
 .parametric-footer img {
   width: 300px;
@@ -1420,7 +1434,10 @@ a {
     margin: 2em auto;
   }
   .parametric-recirc-next-article {
-    margin-left: 0.5em;
+    margin-left: 0;
+    margin-right: 0;
+    padding-left: 1em;
+    padding-right: 1em;
   }
   .parametric-recirc-next-article a {
     font-size: 24px;
@@ -1484,6 +1501,7 @@ a {
   .parametric-footer form {
     flex-direction: column;
     width: calc(100vw - 2em);
+    max-width: 100%;
   }
   .parametric-footer input[type=submit] {
     display: block;
