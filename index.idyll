@@ -19,9 +19,9 @@
     role: 'Author & Developer',
     url: "https://omarshehata.me/"
   }]`
-  doi:""
-  archive:"https://parametric.press/archives/issue-01/unraveling-the-jpeg"
-  source:"https://github.com/ParametricPress/01-unraveling-the-jpeg"
+  doi:"https://doi.org/10.5281/zenodo.2655041"
+  archive:`'https://parametric-press-archives.s3.amazonaws.com/issue-01/' + parametricSlug + '.warc.gz'`
+  source:`"https://github.com/ParametricPress/01-" + parametricSlug `
 /]
 
 It's easy to take for granted that you can send a picture to a friend without worrying about what device, browser, or operating system they’re using, but things weren’t always this way. By the early 1980s, computers could store and display digital images, but there were many competing ideas about how best to do that. You couldn't just send an image from one computer to another and expect it to work.
@@ -46,7 +46,7 @@ It's also just a lot of fun to play with images this way.
 
 Everything on a computer is stored as a series of binary numbers. Typically, these bits, the zeros and ones, are arranged in groups of eight, known as bytes. When you open a JPEG image on your computer, something (the browser, your operating system, or something else) has to decode the bytes to recover the original image as a list of colors that can then be displayed.
 
-If you download [Reference content:"The adorable kitten image used in this article was taken by <a href='https://unsplash.com/photos/NodtnCsLdTE'>Mikhail Vasilyev on Unplash</a>"]that picture of the cat[/Reference] and open it using any text editor, you'll see a bunch of garbled characters.
+If you download [Reference content:"The adorable kitten image used in this article was taken by <a href='https://unsplash.com/photos/NodtnCsLdTE'>Mikhail Vasilyev</a>."]that picture of the cat[/Reference] and open it using any text editor, you'll see a bunch of garbled characters.
 [br/]
 [br/]
 
@@ -273,7 +273,7 @@ Based on the Huffman table, these could actually be three values. To extract the
 
 Then follow the table to figure out how to group them. For example, it could be the first six bits (111010) which is 58 in decimal, followed by another five bits (10011) which is 19 and finally the last four bits (0011), which is three.
 
-This is why it's very difficult to make sense of the bytes at this layer of compression. The bytes don't actually represent what they seem to represent. I won't go into the details of how to extract the Huffman table and translate the bits in this article, but there are [Reference content:"Tom Scott's [a href:'https://www.youtube.com/watch?v=JsTptu56GM8']video on Huffman Encoding[/a] is a great explanation of how it works in general. This [a href:'https://www.impulseadventure.com/photo/jpeg-huffman-coding.html']article by Calvin Hass at ImpulseAdventure[/a] goes into how to extract the Huffman tables from a JPEG image and use it for decoding."]many good resources on this if you're curious[/Reference].
+This is why it's very difficult to make sense of the bytes at this layer of compression. The bytes don't actually represent what they seem to represent. I won't go into the details of how to extract the Huffman table and translate the bits in this article, but there are [Reference content:"Tom Scott's <a href='https://www.youtube.com/watch?v=JsTptu56GM8'>video on Huffman Encoding</a> is a great explanation of how it works in general. This <a href='https://www.impulseadventure.com/photo/jpeg-huffman-coding.html'>article by Calvin Hass at ImpulseAdventure</a> goes into how to extract the Huffman tables from a JPEG image and use it for decoding."]many good resources on this if you're curious[/Reference].
 
 [aside]
 One neat trick you can do with this knowledge is strip out the header from a JPEG image and save it separately. You're effectively making it so only you can read it. [a href:"https://code.fb.com/android/the-technology-behind-preview-photos/" target:"_blank"]Facebook actually does this[/a] to make JPEG images even smaller.

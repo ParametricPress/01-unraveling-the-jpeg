@@ -193,3 +193,7 @@ body.enabled .parametric-header-hed-text {
 body.enabled .hed-rotate {
   opacity: 1;
 }
+
+.parametric-tooltip {
+  pointer-events: all;
+}

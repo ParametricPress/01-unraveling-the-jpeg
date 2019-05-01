@@ -1,22 +1,24 @@
 const React = require('react');
+const ReactTooltip = require('react-tooltip');
 
-class Reference extends React.Component {
-    constructor(props) {
-        // TODO: Make this a reference that pops up a div?
-        // And it keeps track of its number automatically too?
-        super(props);
-        const that = this;
-        this.onClick = function(){
-            alert(that.props.content);
-        }
-    }
+let id = 0;
+class Tooltip extends React.Component {
+  constructor(props) {
+    super(props);
 
-    render() {
-        const { hasError, idyll, updateProps, ...props } = this.props;
-        return (
-            <span className="reference" onClick={this.onClick}>{props.children}</span>
-        );
-    }
+    this._id = `parametric-reference-${id++}`;
+  }
+  render() {
+    const { hasError, idyll, updateProps, children, ...props } = this.props;
+    return (
+      <span>
+        <span className="parametric-tooltip-trigger" data-tip data-for={this._id} data-event='click focus'>{children}</span>
+        <ReactTooltip  className='parametric-tooltip' id={this._id} effect='solid' place='top'>
+          <span dangerouslySetInnerHTML={{__html: props.content}} />
+        </ReactTooltip>
+      </span>
+    );
+  }
 }
 
-module.exports = Reference;
+module.exports = Tooltip;
