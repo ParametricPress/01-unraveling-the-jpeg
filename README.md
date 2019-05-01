@@ -1,6 +1,6 @@
 # Unraveling the JPEG
 
-This is the source code for [Unraveling the JPEG](https://issue-01-preview.parametric.press/articles/unraveling-the-jpeg), an interactive exploration of how to decode a JPEG image that was published in the first issue of the Parametric Press.
+This is the source code for [Unraveling the JPEG](https://issue-01-preview.parametric.press/issue-01/unraveling-the-jpeg/), an interactive exploration of how to decode a JPEG image that was published in the first issue of the Parametric Press.
 
 ## Replacing the images with your own
 
