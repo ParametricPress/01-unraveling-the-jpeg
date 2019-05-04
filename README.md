@@ -19,4 +19,4 @@ To run the article locally, make sure you have NodeJS and NPM installed. Then cl
 
 ### Running local dev server
 
-1. Run `idyll` in the root of this project.
+1. Run `idyll --template _local.html` in the root of this project.
