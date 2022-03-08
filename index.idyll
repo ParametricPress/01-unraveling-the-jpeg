@@ -42,7 +42,7 @@ It's also just a lot of fun to play with images this way.
 
 [br/]
 
-## Peering Inside a JPEG
+## Peeking Inside a JPEG
 
 Everything on a computer is stored as a series of binary numbers. Typically, these bits, the zeros and ones, are arranged in groups of eight, known as bytes. When you open a JPEG image on your computer, something (the browser, your operating system, or something else) has to decode the bytes to recover the original image as a list of colors that can then be displayed.
 
