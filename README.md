@@ -2,6 +2,11 @@
 
 This is the source code for [Unraveling the JPEG](https://issue-01-preview.parametric.press/issue-01/unraveling-the-jpeg/), an interactive exploration of how to decode a JPEG image that was published in the first issue of the Parametric Press.
 
+See also [https://github.com/OmarShehata/jpeg-sandbox](https://github.com/OmarShehata/jpeg-sandbox) for a tool for editing the DCT coefficients directly.
+
+![jpeg-sandbox2](https://user-images.githubusercontent.com/1711126/156947858-542614db-52f8-41b1-b377-c34e532453b3.gif)
+
+
 ## Replacing the images with your own
 
 You can append the query parameter `?imageSrc=https://urlToImage.jpg` to the article, and it will refresh and load a version of the article using that image instead of the cat picture. It should work as long as the server allows cross origin requests.
